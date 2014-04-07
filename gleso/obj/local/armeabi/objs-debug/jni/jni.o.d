@@ -104,7 +104,10 @@ obj/local/armeabi/objs-debug/jni/jni.o: jni/jni.cpp \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_tempbuf.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_tempbuf.c \
  /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/sys/time.h \
- /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/linux/time.h
+ /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/linux/time.h \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/typeinfo \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_typeinfo.h \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/../../gabi++/include/typeinfo
 
 /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/jni.h:
 
@@ -321,3 +324,9 @@ jni/gles.h:
 /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/sys/time.h:
 
 /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/linux/time.h:
+
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/typeinfo:
+
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_typeinfo.h:
+
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/../../gabi++/include/typeinfo:
