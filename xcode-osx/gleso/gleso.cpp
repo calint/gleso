@@ -1,90 +1,68 @@
 #include"gleso.h"
 #include<stdlib.h>
 #include<string.h>
-
-//static const char vertex_shader_source[]="attribute vec4 apos;void main(){gl_Position=apos;}";
-//static const char fragment_shader_source[]="precision mediump float;void main(){gl_FragColor=vec4(0.0,1.0,0.0,1.0);}";
-//static const char vertex_shader_source[]="#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}";
-//static const char fragment_shader_source[]="#version 100\nvoid main(){gl_FragColor=vec4(.6,.3,.2,1.);}";
-static const char vertex_shader_source[]="#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}";
-static const char fragment_shader_source[]="#version 100\nvoid main(){gl_FragColor=vec4(gl_FragCoord.x,gl_FragCoord.y,.2,1.);}";
-
+////////////////////////////////////////////////////////////////////////
+namespace metrics{
+    unsigned int fps;
+    unsigned int nshader;
+    unsigned int nglo;
+    unsigned int nglob;
+    void log(){p("/ metrics fps:%03d – shaders:%01d – glos:%02d – globs:%05d\n",fps,nshader,nglo,nglob);}
+};
+////////////////////////////////////////////////////////////////////////
 class shader;
 namespace gl{
 	shader*shdr;
 	GLuint apos;// vec4 position x,y,z,w
     GLuint umvp;// mat4 model-world-view-projection matrix
 }
+////////////////////////////////////////////////////////////////////////
+
+
 
 class shader{
 	GLuint glid_program;
 	GLuint apos,umvp;
 public:
-	~shader(){
-		if(glid_program){
-			glDeleteProgram(glid_program);
-            //			LOGI("program deleted %d\n",glid_program);
-			glid_program=0;
-		}
+    shader(){metrics::nshader++;}
+	virtual~shader(){
+		metrics::nshader--;
+        if(glid_program){glDeleteProgram(glid_program);glid_program=0;}
 	}
 	static void printGLString(const char *name,const GLenum s){
 		const char*v=(const char*)glGetString(s);
 		p("GL %s = %s\n",name,v);
 	}
     
+    static const char*get_gl_error_string(const GLenum error){
+        const char*str;
+        switch(error){
+            case GL_NO_ERROR:str="GL_NO_ERROR";break;
+            case GL_INVALID_ENUM:str="GL_INVALID_ENUM";break;
+            case GL_INVALID_VALUE:str="GL_INVALID_VALUE";break;
+            case GL_INVALID_OPERATION:str="GL_INVALID_OPERATION";break;
+#if defined __gl_h_ || defined __gl3_h_
+            case GL_OUT_OF_MEMORY:str="GL_OUT_OF_MEMORY";break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION:str="GL_INVALID_FRAMEBUFFER_OPERATION";break;
+#endif
+#if defined __gl_h_
+            case GL_STACK_OVERFLOW:str="GL_STACK_OVERFLOW";break;
+            case GL_STACK_UNDERFLOW:str="GL_STACK_UNDERFLOW";break;
+            case GL_TABLE_TOO_LARGE:str="GL_TABLE_TOO_LARGE";break;
+#endif
+            default:str="(ERROR: Unknown Error Enum)";break;
+        }
+        return str;
+    }
+
 	static bool checkGlError(const char*op){
 		bool err=false;
-        for (GLint error=glGetError();error;error=glGetError()){
-			p("at %s() glError (0x%x):  %s\n",op,error,"");
+        for(GLint error=glGetError();error;error=glGetError()){
+			p("at %s() glError (0x%x):  %s\n",op,error,get_gl_error_string(error));
             err=true;
         }
         return err;
 	}
-    
-    
-    static inline const char * GetGLErrorString(GLenum error)
-    {
-        const char *str;
-        switch( error )
-        {
-            case GL_NO_ERROR:
-                str = "GL_NO_ERROR";
-                break;
-            case GL_INVALID_ENUM:
-                str = "GL_INVALID_ENUM";
-                break;
-            case GL_INVALID_VALUE:
-                str = "GL_INVALID_VALUE";
-                break;
-            case GL_INVALID_OPERATION:
-                str = "GL_INVALID_OPERATION";
-                break;
-#if defined __gl_h_ || defined __gl3_h_
-            case GL_OUT_OF_MEMORY:
-                str = "GL_OUT_OF_MEMORY";
-                break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION:
-                str = "GL_INVALID_FRAMEBUFFER_OPERATION";
-                break;
-#endif
-#if defined __gl_h_
-            case GL_STACK_OVERFLOW:
-                str = "GL_STACK_OVERFLOW";
-                break;
-            case GL_STACK_UNDERFLOW:
-                str = "GL_STACK_UNDERFLOW";
-                break;
-            case GL_TABLE_TOO_LARGE:
-                str = "GL_TABLE_TOO_LARGE";
-                break;
-#endif
-            default:
-                str = "(ERROR: Unknown Error Enum)";
-                break;
-        }
-        return str;
-    }
-    
 
 	static GLuint loadShader(const GLenum shader_type,const char*source){
 		//throw "error";
@@ -108,62 +86,17 @@ public:
 		glDeleteShader(shader);
 		return 0;
 	}
-    
 	bool load(){
-        checkGlError("load call");
-	    printGLString("GL_VERSION",GL_VERSION);
-	    printGLString("GL_VENDOR",GL_VENDOR);
-	    printGLString("GL_RENDERER",GL_RENDERER);
-        //	    printGLString("Extensions",GL_EXTENSIONS);
-	    printGLString("GL_SHADING_LANGUAGE_VERSION",GL_SHADING_LANGUAGE_VERSION);
-        checkGlError("");
-        
-//        if(glid_program){
-//        	glDeleteProgram(glid_program);
-//            checkGlError("delete program");
-//        	LOGI("deleted opengl program %d\n",glid_program);
-//        }
-	    createProgram(vertex_shader_source,fragment_shader_source);
-        checkGlError("program");
-	    apos=glGetAttribLocation(glid_program,"apos");
-//		LOGE("apos: %d\n",apos);
-	    checkGlError("glGetAttribLocation");
-	    if(apos==-1)return false;
-        
-        umvp=glGetUniformLocation(glid_program,"umvp");
-//        LOGE("umvp: %d\n",umvp);
-	    checkGlError("glGetUniformLocation umvp");
-	    if(umvp==-1)return false;
-
-	    return true;
-        //	    LOGI("glGetAttribLocation(\"apos\")=%d\n",apos);
+	    createProgram(vertex_shader_source(),fragment_shader_source());
+        if(checkGlError("program"))return false;
+        return !bind();
 	}
-	void on_viewport_change(const int wi,const int hi){
-        //	    LOGI("on_viewport_change  %d x %d",wi,hi);
-	    glViewport(0,0,wi,hi);
-        //	    checkGlError("glViewport");
-	}
+	void viewport(const int wi,const int hi){glViewport(0,0,wi,hi);}
 	void use_program(){
 		glUseProgram(glid_program);
-		gl::apos=apos;
-        gl::umvp=umvp;
+        prepare_gl_for_render();
 	}
-//	void step(){
-////	    static float grey;
-////	    grey += 0.01f;
-////	    if (grey > 1.0f) {
-////	        grey = 0.0f;
-////	    }
-//        //		LOGI("frame %d\n",frameno++);
-//	    glClearColor(0,0,0,1);
-////        checkGlError("glClearColor");
-//	    glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-////        checkGlError("glClear");
-//	    use_program();
-////        checkGlError("glUseProgram");
-//	}
-    
-protected:
+private:
 	bool createProgram(const char*vertex_shader_source,const char*fragment_shader_source){
 		GLuint glid_vertex_shader=loadShader(GL_VERTEX_SHADER,vertex_shader_source);
 		if(!glid_vertex_shader)return false;
@@ -173,17 +106,15 @@ protected:
         
 		glid_program=glCreateProgram();
 		if(!glid_program)return false;
-//        LOGE("program %d  shaders %d %d\n",glid_program,glid_vertex_shader,glid_pixel_shader);
         
 		glAttachShader(glid_program,glid_vertex_shader);
-		checkGlError("glAttachShader vertex");
+		if(checkGlError("glAttachShader vertex"))return false;
 		glAttachShader(glid_program,glid_pixel_shader);
-		checkGlError("glAttachShader fragment");
+		if(checkGlError("glAttachShader fragment"))return false;
 		glLinkProgram(glid_program);
 		GLint linkStatus=GL_FALSE;
 		glGetProgramiv(glid_program,GL_LINK_STATUS,&linkStatus);
 		if(linkStatus)return true;
-        
 		GLint bufLength=0;
 		glGetProgramiv(glid_program,GL_INFO_LOG_LENGTH,&bufLength);
 		if(bufLength){
@@ -198,6 +129,26 @@ protected:
 		glid_program=0;
 		return false;
 	}
+protected:
+    inline GLuint get_attribute_location(const char*name){return glGetAttribLocation(glid_program,name);}
+    inline GLuint get_uniform_location(const char*name){return glGetUniformLocation(glid_program,name);}
+    
+#define shader_source_vertex "#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}"
+#define shader_source_fragment "#version 100\nvoid main(){gl_FragColor=vec4(gl_FragCoord.x,gl_FragCoord.y,.2,1.);}"
+    inline virtual const char*vertex_shader_source()const{return shader_source_vertex;}
+    inline virtual const char*fragment_shader_source()const{return shader_source_fragment;}
+    
+    #define A(x,y)if((x=get_attribute_location(y))==-1)return-1;
+    #define U(x,y)if((x=get_uniform_location(y))==-1)return-1;
+    virtual int bind(){
+        A(apos,"apos");
+        U(umvp,"umvp");
+        return 0;
+    }
+    inline virtual void prepare_gl_for_render(){
+        gl::apos=apos;
+        gl::umvp=umvp;
+    }
 };
 
 ////////////////////////////////////////////////
@@ -210,7 +161,8 @@ class glo{
     GLuint glid_buffer_vertices;
 #endif
 public:
-	virtual~glo(){p("~glo(%p)\n",this);}
+    glo(){metrics::nglo++;}
+	virtual~glo(){metrics::nglo--;}
 	int load(){
 //		p("glo load\n");
 #ifdef GLESO_EMBEDDED
@@ -228,7 +180,8 @@ public:
 	}
 	void render()const{
 #ifdef GLESO_EMBEDDED
-	    glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,vertices.data());
+//	    glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,vertices.data());
+	    glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,&vertices[0]);
 	    glEnableVertexAttribArray(gl::apos);
 #else
         glBindVertexArray(glid_vao);
@@ -241,7 +194,11 @@ public:
 protected:
     inline virtual std::vector<GLfloat>make_vertices(){
         const GLfloat verts[]={0,.5f, -.5f,-.5f, .5f,-.5f};
-        return std::vector<GLfloat>(std::begin(verts),std::end(verts));
+        std::vector<GLfloat>v;
+        v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
+        return v;
+//
+//        return std::vector<GLfloat>(std::begin(verts),std::end(verts));
     }
     inline virtual void gldraw()const{
         glDrawArrays(GL_TRIANGLES,0,3);
@@ -383,11 +340,6 @@ public:
     inline m4&append_scaling(const p3&scale){mtxScaleApply(c,scale.x(),scale.y(),scale.z());return*this;}
     inline const floato*array()const{return c;}
 };
-namespace metrics{
-    unsigned int fps;
-    unsigned int nglobs;
-    void log(){p("/ metrics fps:%03d – globs:%05d\n",fps,nglobs);}
-};
 //class linked_list{
 //	linked_list*nxt;
 //	linked_list*prv;
@@ -403,7 +355,7 @@ class glob{
     class render_info render_info_next;// next renderinfo, updated during render
     p3 scal;
 public:
-	glob():glo(0){metrics::nglobs++;}
+	glob():glo(0){metrics::nglob++;}
 	virtual ~glob(){}
 	inline glob&glo_ref(const class glo*g){glo=g;return*this;}
     inline class physics&physics(){return phys;}
@@ -446,8 +398,10 @@ public:
 "defglo" */
 class glo_square_xy:public glo{
     inline virtual std::vector<GLfloat>make_vertices(){
-        const GLfloat verts[]={-1,1, -1,-1, 1,-1, 1,1};
-        return std::vector<GLfloat>(std::begin(verts),std::end(verts));
+        const static GLfloat verts[]={-1,1, -1,-1, 1,-1, 1,1};
+        std::vector<GLfloat>v;
+        v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
+        return v;
     }
     inline virtual void gldraw()const{
         glDrawArrays(GL_TRIANGLE_FAN,0,4);
@@ -455,7 +409,10 @@ class glo_square_xy:public glo{
     
 };
 class glo_circle_xy:public glo{
-    const int nvertices=1+12+1;
+    int nvertices;
+public:
+    glo_circle_xy():nvertices(1+12+1){}
+protected:
     inline virtual std::vector<GLfloat>make_vertices(){
         std::vector<GLfloat>v;
         v.push_back(0);//x
@@ -583,6 +540,14 @@ namespace fps{
 ////
 //  interface
 int gleso_init(){
+    shader::checkGlError("init");
+    shader::printGLString("GL_VERSION",GL_VERSION);
+    shader::printGLString("GL_VENDOR",GL_VENDOR);
+    shader::printGLString("GL_RENDERER",GL_RENDERER);
+    //	    printGLString("Extensions",GL_EXTENSIONS);
+    shader::printGLString("GL_SHADING_LANGUAGE_VERSION",GL_SHADING_LANGUAGE_VERSION);
+    shader::checkGlError("after opengl info");
+
 	p("/// gleso init\n");
 	p("%16s %4lu B\n","int",sizeof(int));
 	p("%16s %4lu B\n","float",sizeof(floato));
@@ -591,15 +556,14 @@ int gleso_init(){
 	p("%16s %4lu B\n","glo",sizeof(glo));
 	p("%16s %4lu B\n","glob",sizeof(glob));
 	p("%16s %4lu B\n","grid",sizeof(grid));
-//	LOGI("%s %lu B\n","physics",sizeof(physics));
+//	p("%16s %4lu B\n","physics",sizeof(physics));
     srand(1);// generate same random numbers in different instances
 
 	if(!gl::shdr)gl::shdr=new shader();
     if(!gl::shdr->load())return 1;
     
-    if(gleso::glos.empty()){
+    if(gleso::glos.empty()){//? if no glos declared re-init?
         gleso_impl_add_glos(gleso::glos);
-        
         foreach(gleso::glos,[](glo*g){g->load();});
     }
     if(!gleso::grd){
@@ -612,7 +576,7 @@ int gleso_init(){
 }
 void gleso_on_viewport_change(int width,int height){
 	p("/// gleso_on_viewport_change %d x %d\n",width,height);
-	if(gl::shdr)gl::shdr->on_viewport_change(width,height);
+	if(gl::shdr)gl::shdr->viewport(width,height);
 }
 void gleso_step(){
 	fps::before_render();
@@ -630,4 +594,19 @@ void gleso_step(){
 //	std::for_each(gleso::glos.begin(),gleso::glos.end(),[](glo*g){delete g;});
 //	if(gleso::grd)delete gleso::grd;
 //}
+///////////////////////////////
+
+
+
+
+//   clipboard
+
+
+//static const char vertex_shader_source[]="attribute vec4 apos;void main(){gl_Position=apos;}";
+//static const char fragment_shader_source[]="precision mediump float;void main(){gl_FragColor=vec4(0.0,1.0,0.0,1.0);}";
+//static const char vertex_shader_source[]="#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}";
+////static const char fragment_shader_source[]="#version 100\nvoid main(){gl_FragColor=vec4(.6,.3,.2,1.);}";
+//static const char vertex_shader_source_ch[]="#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}";
+//static const char fragment_shader_source_ch[]="#version 100\nvoid main(){gl_FragColor=vec4(gl_FragCoord.x,gl_FragCoord.y,.2,1.);}";
+
 

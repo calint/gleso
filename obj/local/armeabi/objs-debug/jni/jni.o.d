@@ -44,10 +44,9 @@ obj/local/armeabi/objs-debug/jni/jni.o: jni/jni.cpp \
  /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/machine/kernel.h \
  /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/sys/sysmacros.h \
  /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/memory.h \
- /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/list \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/vector \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_prolog.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/debug/_debug.h \
- /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_list.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_algobase.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_cstddef.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_cstring.h \
@@ -74,6 +73,7 @@ obj/local/armeabi/objs-debug/jni/jni.o: jni/jni.cpp \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_algobase.c \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_function_base.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_iterator.h \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_vector.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_alloc.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_new.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/../../gabi++/include/new \
@@ -87,17 +87,21 @@ obj/local/armeabi/objs-debug/jni/jni.o: jni/jni.cpp \
  /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/../include/stdio.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_construct.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_alloc.c \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_uninitialized.h \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_vector.c \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_range_errors.h \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_bvector.h \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/list \
+ /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_list.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_list.c \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_carray.h \
- /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_range_errors.h \
- /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/algorithm \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_algo.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_heap.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_heap.c \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_algo.c \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_tempbuf.h \
- /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_uninitialized.h \
  /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_tempbuf.c \
  /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/sys/time.h \
  /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/linux/time.h
@@ -196,13 +200,11 @@ jni/gles.h:
 
 /Users/calin/Downloads/android-ndk-r9d/platforms/android-19/arch-arm/usr/include/memory.h:
 
-/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/list:
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/vector:
 
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_prolog.h:
 
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/debug/_debug.h:
-
-/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_list.h:
 
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_algobase.h:
 
@@ -256,6 +258,8 @@ jni/gles.h:
 
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_iterator.h:
 
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_vector.h:
+
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_alloc.h:
 
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_new.h:
@@ -282,13 +286,23 @@ jni/gles.h:
 
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_alloc.c:
 
-/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_list.c:
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_uninitialized.h:
 
-/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_carray.h:
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_vector.c:
 
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_range_errors.h:
 
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_bvector.h:
+
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_relops_cont.h:
+
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/list:
+
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_list.h:
+
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_list.c:
+
+/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_carray.h:
 
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/algorithm:
 
@@ -301,8 +315,6 @@ jni/gles.h:
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_algo.c:
 
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_tempbuf.h:
-
-/Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_uninitialized.h:
 
 /Users/calin/Downloads/android-ndk-r9d/sources/cxx-stl/stlport/stlport/stl/_tempbuf.c:
 
