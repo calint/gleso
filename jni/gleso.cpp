@@ -574,7 +574,7 @@ int gleso_init(){
     fps::reset();
     return 0;
 }
-void gleso_on_viewport_change(int width,int height){
+void gleso_on_viewport_change(const int width,const int height){
 	p("/// gleso_on_viewport_change %d x %d\n",width,height);
 	if(gl::shdr)gl::shdr->viewport(width,height);
 }
