@@ -1,0 +1,409 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3A1598EF11B9DE37001E7AB5 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A1598EE11B9DE37001E7AB5 /* OpenGL.framework */; };
+		3A15990711B9DE6C001E7AB5 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A15990611B9DE6C001E7AB5 /* QuartzCore.framework */; };
+		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		FAFC503E18F26F3300D5E2CF /* character.fsh in Resources */ = {isa = PBXBuildFile; fileRef = FAFC502518F26F3300D5E2CF /* character.fsh */; };
+		FAFC503F18F26F3300D5E2CF /* character.vsh in Resources */ = {isa = PBXBuildFile; fileRef = FAFC502618F26F3300D5E2CF /* character.vsh */; };
+		FAFC504018F26F3300D5E2CF /* imageUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = FAFC502818F26F3300D5E2CF /* imageUtil.m */; };
+		FAFC504118F26F3300D5E2CF /* matrixUtil.c in Sources */ = {isa = PBXBuildFile; fileRef = FAFC502918F26F3300D5E2CF /* matrixUtil.c */; };
+		FAFC504218F26F3300D5E2CF /* reflect.fsh in Resources */ = {isa = PBXBuildFile; fileRef = FAFC502B18F26F3300D5E2CF /* reflect.fsh */; };
+		FAFC504318F26F3300D5E2CF /* reflect.vsh in Resources */ = {isa = PBXBuildFile; fileRef = FAFC502C18F26F3300D5E2CF /* reflect.vsh */; };
+		FAFC504418F26F3300D5E2CF /* vectorUtil.c in Sources */ = {isa = PBXBuildFile; fileRef = FAFC502D18F26F3300D5E2CF /* vectorUtil.c */; };
+		FAFC504518F26F3300D5E2CF /* GLEssentialsFullscreenWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = FAFC503118F26F3300D5E2CF /* GLEssentialsFullscreenWindow.m */; };
+		FAFC504618F26F3300D5E2CF /* GLEssentialsGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = FAFC503318F26F3300D5E2CF /* GLEssentialsGLView.m */; };
+		FAFC504718F26F3300D5E2CF /* GLEssentialsWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = FAFC503518F26F3300D5E2CF /* GLEssentialsWindowController.m */; };
+		FAFC504818F26F3300D5E2CF /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = FAFC503618F26F3300D5E2CF /* main.m */; };
+		FAFC504918F26F3300D5E2CF /* OpenGLRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = FAFC503818F26F3300D5E2CF /* OpenGLRenderer.m */; };
+		FAFC504F18F26FBD00D5E2CF /* gleso.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FAFC504D18F26FBD00D5E2CF /* gleso.cpp */; };
+		FAFC505418F2729E00D5E2CF /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = FAFC505218F2729E00D5E2CF /* MainMenu.xib */; };
+		FAFC505518F2729E00D5E2CF /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = FAFC505318F2729E00D5E2CF /* InfoPlist.strings */; };
+		FAFC505918F272D300D5E2CF /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = FAFC505618F272D300D5E2CF /* logo.png */; };
+		FAFC505A18F272D300D5E2CF /* robot.png in Resources */ = {isa = PBXBuildFile; fileRef = FAFC505718F272D300D5E2CF /* robot.png */; };
+		FAFC505B18F272D300D5E2CF /* tini.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FAFC505818F272D300D5E2CF /* tini.ttf */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
+		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		3A1598D311B9DDB0001E7AB5 /* gleso.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gleso.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3A1598EE11B9DE37001E7AB5 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		3A15990611B9DE6C001E7AB5 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		8D1107310486CEB800E47090 /* gleso-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "gleso-Info.plist"; sourceTree = "<group>"; };
+		FAFC502518F26F3300D5E2CF /* character.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = character.fsh; sourceTree = "<group>"; };
+		FAFC502618F26F3300D5E2CF /* character.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = character.vsh; sourceTree = "<group>"; };
+		FAFC502718F26F3300D5E2CF /* imageUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imageUtil.h; sourceTree = "<group>"; };
+		FAFC502818F26F3300D5E2CF /* imageUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = imageUtil.m; sourceTree = "<group>"; };
+		FAFC502918F26F3300D5E2CF /* matrixUtil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = matrixUtil.c; sourceTree = "<group>"; };
+		FAFC502A18F26F3300D5E2CF /* matrixUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = matrixUtil.h; sourceTree = "<group>"; };
+		FAFC502B18F26F3300D5E2CF /* reflect.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = reflect.fsh; sourceTree = "<group>"; };
+		FAFC502C18F26F3300D5E2CF /* reflect.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = reflect.vsh; sourceTree = "<group>"; };
+		FAFC502D18F26F3300D5E2CF /* vectorUtil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vectorUtil.c; sourceTree = "<group>"; };
+		FAFC502E18F26F3300D5E2CF /* vectorUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vectorUtil.h; sourceTree = "<group>"; };
+		FAFC503018F26F3300D5E2CF /* GLEssentialsFullscreenWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLEssentialsFullscreenWindow.h; sourceTree = "<group>"; };
+		FAFC503118F26F3300D5E2CF /* GLEssentialsFullscreenWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GLEssentialsFullscreenWindow.m; sourceTree = "<group>"; };
+		FAFC503218F26F3300D5E2CF /* GLEssentialsGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLEssentialsGLView.h; sourceTree = "<group>"; };
+		FAFC503318F26F3300D5E2CF /* GLEssentialsGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GLEssentialsGLView.m; sourceTree = "<group>"; };
+		FAFC503418F26F3300D5E2CF /* GLEssentialsWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GLEssentialsWindowController.h; sourceTree = "<group>"; };
+		FAFC503518F26F3300D5E2CF /* GLEssentialsWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GLEssentialsWindowController.m; sourceTree = "<group>"; };
+		FAFC503618F26F3300D5E2CF /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		FAFC503718F26F3300D5E2CF /* OpenGLRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGLRenderer.h; sourceTree = "<group>"; };
+		FAFC503818F26F3300D5E2CF /* OpenGLRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpenGLRenderer.m; sourceTree = "<group>"; };
+		FAFC504D18F26FBD00D5E2CF /* gleso.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gleso.cpp; sourceTree = "<group>"; };
+		FAFC504E18F26FBD00D5E2CF /* gleso.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gleso.h; sourceTree = "<group>"; };
+		FAFC505018F2701000D5E2CF /* gles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gles.h; sourceTree = "<group>"; };
+		FAFC505218F2729E00D5E2CF /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = MainMenu.xib; path = Resources/MainMenu.xib; sourceTree = "<group>"; };
+		FAFC505318F2729E00D5E2CF /* InfoPlist.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = Resources/InfoPlist.strings; sourceTree = "<group>"; };
+		FAFC505618F272D300D5E2CF /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo.png; path = Resources/logo.png; sourceTree = "<group>"; };
+		FAFC505718F272D300D5E2CF /* robot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = robot.png; path = Resources/robot.png; sourceTree = "<group>"; };
+		FAFC505818F272D300D5E2CF /* tini.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = tini.ttf; path = Resources/tini.ttf; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8D11072E0486CEB800E47090 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
+				3A1598EF11B9DE37001E7AB5 /* OpenGL.framework in Frameworks */,
+				3A15990711B9DE6C001E7AB5 /* QuartzCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
+				3A1598EE11B9DE37001E7AB5 /* OpenGL.framework */,
+				3A15990611B9DE6C001E7AB5 /* QuartzCore.framework */,
+			);
+			name = "Linked Frameworks";
+			sourceTree = "<group>";
+		};
+		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
+				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		19C28FACFE9D520D11CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3A1598D311B9DDB0001E7AB5 /* gleso.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		29B97314FDCFA39411CA2CEA /* OSXGLEssentials */ = {
+			isa = PBXGroup;
+			children = (
+				FAFC504B18F26F5900D5E2CF /* gleso */,
+				FAFC502F18F26F3300D5E2CF /* framework-osx */,
+				FAFC502418F26F3300D5E2CF /* clipboard */,
+				29B97317FDCFA39411CA2CEA /* Resources */,
+				29B97323FDCFA39411CA2CEA /* Frameworks */,
+				19C28FACFE9D520D11CA2CBB /* Products */,
+			);
+			name = OSXGLEssentials;
+			sourceTree = "<group>";
+		};
+		29B97317FDCFA39411CA2CEA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FAFC505618F272D300D5E2CF /* logo.png */,
+				FAFC505718F272D300D5E2CF /* robot.png */,
+				FAFC505818F272D300D5E2CF /* tini.ttf */,
+				FAFC505218F2729E00D5E2CF /* MainMenu.xib */,
+				FAFC505318F2729E00D5E2CF /* InfoPlist.strings */,
+				8D1107310486CEB800E47090 /* gleso-Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
+				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		FAFC502418F26F3300D5E2CF /* clipboard */ = {
+			isa = PBXGroup;
+			children = (
+				FAFC502518F26F3300D5E2CF /* character.fsh */,
+				FAFC502618F26F3300D5E2CF /* character.vsh */,
+				FAFC502718F26F3300D5E2CF /* imageUtil.h */,
+				FAFC502818F26F3300D5E2CF /* imageUtil.m */,
+				FAFC502918F26F3300D5E2CF /* matrixUtil.c */,
+				FAFC502A18F26F3300D5E2CF /* matrixUtil.h */,
+				FAFC502B18F26F3300D5E2CF /* reflect.fsh */,
+				FAFC502C18F26F3300D5E2CF /* reflect.vsh */,
+				FAFC502D18F26F3300D5E2CF /* vectorUtil.c */,
+				FAFC502E18F26F3300D5E2CF /* vectorUtil.h */,
+			);
+			path = clipboard;
+			sourceTree = "<group>";
+		};
+		FAFC502F18F26F3300D5E2CF /* framework-osx */ = {
+			isa = PBXGroup;
+			children = (
+				FAFC503618F26F3300D5E2CF /* main.m */,
+				FAFC503218F26F3300D5E2CF /* GLEssentialsGLView.h */,
+				FAFC503318F26F3300D5E2CF /* GLEssentialsGLView.m */,
+				FAFC503718F26F3300D5E2CF /* OpenGLRenderer.h */,
+				FAFC503818F26F3300D5E2CF /* OpenGLRenderer.m */,
+				FAFC503418F26F3300D5E2CF /* GLEssentialsWindowController.h */,
+				FAFC503518F26F3300D5E2CF /* GLEssentialsWindowController.m */,
+				FAFC503018F26F3300D5E2CF /* GLEssentialsFullscreenWindow.h */,
+				FAFC503118F26F3300D5E2CF /* GLEssentialsFullscreenWindow.m */,
+			);
+			path = "framework-osx";
+			sourceTree = "<group>";
+		};
+		FAFC504B18F26F5900D5E2CF /* gleso */ = {
+			isa = PBXGroup;
+			children = (
+				FAFC504D18F26FBD00D5E2CF /* gleso.cpp */,
+				FAFC504E18F26FBD00D5E2CF /* gleso.h */,
+				FAFC504C18F26F5900D5E2CF /* osx-adapter */,
+			);
+			path = gleso;
+			sourceTree = "<group>";
+		};
+		FAFC504C18F26F5900D5E2CF /* osx-adapter */ = {
+			isa = PBXGroup;
+			children = (
+				FAFC505018F2701000D5E2CF /* gles.h */,
+			);
+			path = "osx-adapter";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8D1107260486CEB800E47090 /* gleso */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "gleso" */;
+			buildPhases = (
+				8D1107290486CEB800E47090 /* Resources */,
+				8D11072C0486CEB800E47090 /* Sources */,
+				8D11072E0486CEB800E47090 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = gleso;
+			productInstallPath = "$(HOME)/Applications";
+			productName = OSXGLEssentials;
+			productReference = 3A1598D311B9DDB0001E7AB5 /* gleso.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		29B97313FDCFA39411CA2CEA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0510;
+			};
+			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "gleso" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 29B97314FDCFA39411CA2CEA /* OSXGLEssentials */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8D1107260486CEB800E47090 /* gleso */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8D1107290486CEB800E47090 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAFC503F18F26F3300D5E2CF /* character.vsh in Resources */,
+				FAFC505418F2729E00D5E2CF /* MainMenu.xib in Resources */,
+				FAFC505A18F272D300D5E2CF /* robot.png in Resources */,
+				FAFC504318F26F3300D5E2CF /* reflect.vsh in Resources */,
+				FAFC503E18F26F3300D5E2CF /* character.fsh in Resources */,
+				FAFC505918F272D300D5E2CF /* logo.png in Resources */,
+				FAFC504218F26F3300D5E2CF /* reflect.fsh in Resources */,
+				FAFC505518F2729E00D5E2CF /* InfoPlist.strings in Resources */,
+				FAFC505B18F272D300D5E2CF /* tini.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8D11072C0486CEB800E47090 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FAFC504518F26F3300D5E2CF /* GLEssentialsFullscreenWindow.m in Sources */,
+				FAFC504118F26F3300D5E2CF /* matrixUtil.c in Sources */,
+				FAFC504718F26F3300D5E2CF /* GLEssentialsWindowController.m in Sources */,
+				FAFC504F18F26FBD00D5E2CF /* gleso.cpp in Sources */,
+				FAFC504918F26F3300D5E2CF /* OpenGLRenderer.m in Sources */,
+				FAFC504818F26F3300D5E2CF /* main.m in Sources */,
+				FAFC504418F26F3300D5E2CF /* vectorUtil.c in Sources */,
+				FAFC504618F26F3300D5E2CF /* GLEssentialsGLView.m in Sources */,
+				FAFC504018F26F3300D5E2CF /* imageUtil.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		C01FCF4B08A954540054247B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = gleso_Prefix.pch;
+				INFOPLIST_FILE = "gleso-Info.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_NAME = gleso;
+			};
+			name = Debug;
+		};
+		C01FCF4C08A954540054247B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = gleso_Prefix.pch;
+				INFOPLIST_FILE = "gleso-Info.plist";
+				INSTALL_PATH = "$(HOME)/Applications";
+				PRODUCT_NAME = gleso;
+			};
+			name = Release;
+		};
+		C01FCF4F08A954540054247B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
+				CLANG_ANALYZER_SECURITY_INSECUREAPI_RAND = YES;
+				CLANG_ANALYZER_SECURITY_INSECUREAPI_STRCPY = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CXX0X_EXTENSIONS = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_OBJC_EXPLICIT_OWNERSHIP_TYPE = YES;
+				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_MISSING_PROPERTY_SYNTHESIS = YES;
+				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
+				CLANG_WARN_OBJC_REPEATED_USE_OF_WEAK = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CLANG_WARN__EXIT_TIME_DESTRUCTORS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = "DEBUG=1";
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_HIDDEN_VIRTUAL_FUNCTIONS = YES;
+				GCC_WARN_MULTIPLE_DEFINITION_TYPES_FOR_SELECTOR = YES;
+				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
+				GCC_WARN_STRICT_SELECTOR_MATCH = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = "";
+			};
+			name = Debug;
+		};
+		C01FCF5008A954540054247B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
+				CLANG_ANALYZER_SECURITY_INSECUREAPI_RAND = YES;
+				CLANG_ANALYZER_SECURITY_INSECUREAPI_STRCPY = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CXX0X_EXTENSIONS = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_OBJC_EXPLICIT_OWNERSHIP_TYPE = YES;
+				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_MISSING_PROPERTY_SYNTHESIS = YES;
+				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
+				CLANG_WARN_OBJC_REPEATED_USE_OF_WEAK = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CLANG_WARN__EXIT_TIME_DESTRUCTORS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_HIDDEN_VIRTUAL_FUNCTIONS = YES;
+				GCC_WARN_MULTIPLE_DEFINITION_TYPES_FOR_SELECTOR = YES;
+				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
+				GCC_WARN_STRICT_SELECTOR_MATCH = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				SDKROOT = "";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "gleso" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C01FCF4B08A954540054247B /* Debug */,
+				C01FCF4C08A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C01FCF4E08A954540054247B /* Build configuration list for PBXProject "gleso" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C01FCF4F08A954540054247B /* Debug */,
+				C01FCF5008A954540054247B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 29B97313FDCFA39411CA2CEA /* Project object */;
+}
