@@ -549,13 +549,13 @@ int gleso_init(){
     shader::checkGlError("after opengl info");
 
 	p("/// gleso init\n");
-	p("%16s %4lu B\n","int",sizeof(int));
-	p("%16s %4lu B\n","float",sizeof(floato));
-	p("%16s %4lu B\n","p3",sizeof(p3));
-	p("%16s %4lu B\n","m4",sizeof(m4));
-	p("%16s %4lu B\n","glo",sizeof(glo));
-	p("%16s %4lu B\n","glob",sizeof(glob));
-	p("%16s %4lu B\n","grid",sizeof(grid));
+	p("%16s %4u B\n","int",(unsigned int)sizeof(int));
+	p("%16s %4u B\n","float",(unsigned int)sizeof(floato));
+	p("%16s %4u B\n","p3",(unsigned int)sizeof(p3));
+	p("%16s %4u B\n","m4",(unsigned int)sizeof(m4));
+	p("%16s %4u B\n","glo",(unsigned int)sizeof(glo));
+	p("%16s %4u B\n","glob",(unsigned int)sizeof(glob));
+	p("%16s %4u B\n","grid",(unsigned int)sizeof(grid));
 //	p("%16s %4lu B\n","physics",sizeof(physics));
     srand(1);// generate same random numbers in different instances
 
