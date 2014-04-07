@@ -4,8 +4,10 @@
 
 //static const char vertex_shader_source[]="attribute vec4 apos;void main(){gl_Position=apos;}";
 //static const char fragment_shader_source[]="precision mediump float;void main(){gl_FragColor=vec4(0.0,1.0,0.0,1.0);}";
+//static const char vertex_shader_source[]="#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}";
+//static const char fragment_shader_source[]="#version 100\nvoid main(){gl_FragColor=vec4(.6,.3,.2,1.);}";
 static const char vertex_shader_source[]="#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}";
-static const char fragment_shader_source[]="#version 100\nvoid main(){gl_FragColor=vec4(.6,.3,.2,1.);}";
+static const char fragment_shader_source[]="#version 100\nvoid main(){gl_FragColor=vec4(gl_FragCoord.x,gl_FragCoord.y,.2,1.);}";
 
 class shader;
 namespace gl{
@@ -432,11 +434,16 @@ public:
     }
 };
 
-
-
-
-
-
+/*-----------------------------
+     __    _       __     __
+    /  \   |      /  \   /  \
+   /       |     |    | |
+   |  ___  |     |    |  \__
+   |    |  |     |    |     \
+    \___/  |___|  \__/   \__/
+ 
+------------------------------
+"defglo" */
 class glo_square_xy:public glo{
     inline virtual std::vector<GLfloat>make_vertices(){
         const GLfloat verts[]={-1,1, -1,-1, 1,-1, 1,1};
@@ -618,9 +625,9 @@ void gleso_step(){
     gleso::grd->render();//? thread
 	fps::after_render();
 }
-void gleso_on_context_destroyed(){
-	if(gl::shdr)delete gl::shdr;
-	std::for_each(gleso::glos.begin(),gleso::glos.end(),[](glo*g){delete g;});
-	if(gleso::grd)delete gleso::grd;
-}
+//void gleso_on_context_destroyed(){
+//	if(gl::shdr)delete gl::shdr;
+//	std::for_each(gleso::glos.begin(),gleso::glos.end(),[](glo*g){delete g;});
+//	if(gleso::grd)delete gleso::grd;
+//}
 
