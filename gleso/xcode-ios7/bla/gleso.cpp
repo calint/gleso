@@ -30,10 +30,13 @@ public:
 		p("GL %s = %s\n",name,v);
 	}
     
-	static void checkGlError(const char*op){
-		for (GLint error=glGetError();error;error=glGetError()){
+	static bool checkGlError(const char*op){
+		bool err=false;
+        for (GLint error=glGetError();error;error=glGetError()){
 			p("at %s() glError (0x%x):  %s\n",op,error,"");
-		}
+            err=true;
+        }
+        return err;
 	}
     
     
@@ -196,48 +199,35 @@ protected:
 };
 
 ////////////////////////////////////////////////
-//static shader*shadr;
-
-                              // x,y ...
-static const GLfloat verts[]={0,.5f, -.5f,-.5f, .5f,-.5f};
-
+#include<vector>
 class glo{
 #ifdef GLESO_EMBEDDED
-	GLfloat*vertices;
+    std::vector<GLfloat>vertices;
 #else
-    GLuint glid_buffer_vertices;
     GLuint glid_vao;
+    GLuint glid_buffer_vertices;
 #endif
 public:
-	~glo(){
-        p("~glo(%p)\n",this);
-#ifdef GLESO_EMBEDDED
-		if(vertices)delete vertices;
-#else
-        //? release glid_*
-#endif
-	}
+	virtual~glo(){p("~glo(%p)\n",this);}
 	int load(){
-		p("glo load\n");
+//		p("glo load\n");
 #ifdef GLESO_EMBEDDED
-        if(vertices)return true;
-		vertices=(GLfloat*)malloc(sizeof(verts));
-		memcpy(vertices,verts,sizeof(verts));
+        vertices=make_vertices();
 #else
         glGenVertexArrays(1,&glid_vao);
         glBindVertexArray(glid_vao);
         glGenBuffers(1,&glid_buffer_vertices);
         glBindBuffer(GL_ARRAY_BUFFER,glid_buffer_vertices);
-        LOGI("glo loads buffer size: %lu bytes\n",sizeof(verts));
-        glBufferData(GL_ARRAY_BUFFER,sizeof(verts),verts,GL_STATIC_DRAW);
-        shader::checkGlError("load");
+        const std::vector<GLfloat>vec=verties();
+        glBufferData(GL_ARRAY_BUFFER,vec.size()*sizeof(GLfloat),vec.data(),GL_STATIC_DRAW);
+        if(shader::checkGlError("load"))return 1;
 #endif
 		return 0;
 	}
 	void render()const{
 #ifdef GLESO_EMBEDDED
         shader::checkGlError("enter rend");
-	    glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,vertices);
+	    glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,vertices.data());
         shader::checkGlError("vertexattrib");
 	    glEnableVertexAttribArray(gl::apos);
         shader::checkGlError("enable");
@@ -252,9 +242,28 @@ public:
         glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,0);
         shader::checkGlError("vertexattrib");
 #endif
-        glDrawArrays(GL_TRIANGLES,0,3);
+        gldraw();
         shader::checkGlError("draw");
     }
+protected:
+    inline virtual std::vector<GLfloat>make_vertices(){
+        const GLfloat verts[]={0,.5f, -.5f,-.5f, .5f,-.5f};
+        return std::vector<GLfloat>(std::begin(verts),std::end(verts));
+    }
+    inline virtual void gldraw()const{
+        glDrawArrays(GL_TRIANGLES,0,3);
+    }
+};
+
+class glo_square:public glo{
+    inline virtual std::vector<GLfloat>make_vertices(){
+        const GLfloat verts[]={-1,1, -1,-1, 1,-1, 1,1};
+        return std::vector<GLfloat>(std::begin(verts),std::end(verts));
+    }
+    inline virtual void gldraw()const{
+        glDrawArrays(GL_TRIANGLE_FAN,0,4);
+    }
+    
 };
 
 class p3{
@@ -277,7 +286,7 @@ namespace gleso{
     floato dt;
     inline floato d(const floato unit_over_second){return unit_over_second*dt;}
     unsigned int tick;//?? rollover issues when used in comparisons
-    std::list<glo*>glos;
+    std::vector<glo*>glos;
     grid*grd;
     const floato rnd(){return floato(rand())/RAND_MAX;}
 }
@@ -423,8 +432,8 @@ public:
         render_info=render_info_next;
         matrix_model_world.load_translate(render_info.position());
         matrix_model_world.append_rotation_about_z_axis(render_info.angle().z());
-//        LOGI("scale x %f\n",render_info.scale().x());
         matrix_model_world.append_scaling(render_info.scale());
+//        LOGI("scale x %f\n",render_info.scale().x());
         glUniformMatrix4fv(gl::umvp,1,false,matrix_model_world.array());
         glo->render();
 	}
@@ -449,9 +458,20 @@ public:
   ///   ///  \\\///   ///     ///
 ///// /////   \\\/  /////   /////
 
-/*gives*/glob*gleso_impl_create_root(){
+
+//#ifndef GLESO_EMBEDDED
+//const int nsprites=1024*16;
+//#else
+//const int nsprites=1024;
+//#endif
+const int nsprites=32;
+static void gleso_impl_add_glos(std::vector<glo*>&glos){
+    glos.push_back(/*gives*/new glo());//? leak? push_pack does not /*take*/ ownership of object.
+    glos.push_back(/*gives*/new glo_square());//? leak? push_pack does not /*take*/ ownership of object.
+}
+static/*gives*/glob*gleso_impl_create_root(){
     glob*g=new glob();
-    g->scale(p3{.1,.1}).glo_ref(gleso::glos.front());
+    g->scale(p3{.1,.1}).glo_ref(gleso::glos[1]);
     physics&p=g->physics();
     p.pos().x(2*gleso::rnd()-1);
     p.pos().y(2*gleso::rnd()-1);
@@ -532,12 +552,6 @@ namespace fps{
 	}
 }
 
-#ifndef GLESO_EMBEDDED
-const int nsprites=1024*16;
-#else
-const int nsprites=1024;
-#endif
-
 //////
 ////
 // gleso interface
@@ -557,7 +571,8 @@ int gleso_init(){
     if(!gl::shdr->load())return 1;
     
     if(gleso::glos.empty()){
-        gleso::glos.push_back(/*gives*/new glo());//? leak? push_pack does not /*take*/ ownership of object.
+        gleso_impl_add_glos(gleso::glos);
+        
         foreach(gleso::glos,[](glo*g){g->load();});
     }
     if(!gleso::grd){
