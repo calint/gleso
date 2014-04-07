@@ -8,7 +8,7 @@ namespace metrics{
     unsigned int nglo;
     unsigned int nglob;
     void log(){p("/ metrics fps:%03d – shaders:%01d – glos:%02d – globs:%05d\n",fps,nshader,nglo,nglob);}
-};
+}
 ////////////////////////////////////////////////////////////////////////
 class shader;
 namespace gl{
@@ -192,7 +192,8 @@ public:
         gldraw();
     }
 protected:
-    inline virtual std::vector<GLfloat>make_vertices(){
+    virtual std::vector<GLfloat>make_vertices()const{
+//    	p(" load glo\n");
         const GLfloat verts[]={0,.5f, -.5f,-.5f, .5f,-.5f};
         std::vector<GLfloat>v;
         v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
@@ -200,7 +201,7 @@ protected:
 //
 //        return std::vector<GLfloat>(std::begin(verts),std::end(verts));
     }
-    inline virtual void gldraw()const{
+    virtual void gldraw()const{
         glDrawArrays(GL_TRIANGLES,0,3);
     }
 };
@@ -397,7 +398,7 @@ public:
 ------------------------------
 "defglo" */
 class glo_square_xy:public glo{
-    inline virtual std::vector<GLfloat>make_vertices(){
+    virtual std::vector<GLfloat>make_vertices()const{
         const static GLfloat verts[]={-1,1, -1,-1, 1,-1, 1,1};
         std::vector<GLfloat>v;
         v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
@@ -413,7 +414,7 @@ class glo_circle_xy:public glo{
 public:
     glo_circle_xy():nvertices(1+12+1){}
 protected:
-    inline virtual std::vector<GLfloat>make_vertices(){
+    virtual std::vector<GLfloat>make_vertices()const{
         std::vector<GLfloat>v;
         v.push_back(0);//x
         v.push_back(0);//y
@@ -426,9 +427,10 @@ protected:
             v.push_back(x);
             v.push_back(y);
         }
+//        p("circle  virtual call   vertices size %d\n",v.size());
         return v;
     }
-    inline virtual void gldraw()const{
+    virtual void gldraw()const{
         glDrawArrays(GL_TRIANGLE_FAN,0,nvertices);
     }
     
@@ -446,7 +448,7 @@ protected:
 //#else
 //const int nsprites=1024;
 //#endif
-const int nsprites=1024*4;
+const int nsprites=32;//1024*4;
 static void gleso_impl_add_glos(std::vector<glo*>&glos){
     glos.push_back(/*gives*/new glo());//? leak? push_pack does not /*take*/ ownership of object.
     glos.push_back(/*gives*/new glo_square_xy());//? leak? push_pack does not /*take*/ ownership of object.
@@ -539,6 +541,7 @@ namespace fps{
 //////
 ////
 //  interface
+#include<typeinfo>
 int gleso_init(){
     shader::checkGlError("init");
     shader::printGLString("GL_VERSION",GL_VERSION);
@@ -564,7 +567,14 @@ int gleso_init(){
     
     if(gleso::glos.empty()){//? if no glos declared re-init?
         gleso_impl_add_glos(gleso::glos);
-        foreach(gleso::glos,[](glo*g){g->load();});
+//        p(" glos %d\n",gleso::glos.size());
+//        for(glo*g:gleso::glos){
+//            p(" glo %p   %s\n",g,typeid(*g).name());
+//        }
+        foreach(gleso::glos,[](glo*g){
+//            p(" glo %p   %s\n",g,typeid(*g).name());
+        	g->load();
+        });
     }
     if(!gleso::grd){
     	gleso::grd=new grid();
