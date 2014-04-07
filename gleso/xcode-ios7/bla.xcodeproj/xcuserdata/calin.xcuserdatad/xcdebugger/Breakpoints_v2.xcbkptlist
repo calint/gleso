@@ -10,13 +10,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "bla/gleso.cpp"
-            timestampString = "418547990.226808"
+            timestampString = "418555147.718707"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "300"
-            endingLineNumber = "300"
-            landmarkName = "update()"
-            landmarkType = "5">
+            startingLineNumber = "305"
+            endingLineNumber = "305"
+            landmarkName = "mtxRotateZApply(floato* mtx, floato deg)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
