@@ -505,7 +505,6 @@ public://                                          (:)
 };
 
 #include<sys/time.h>
-//static void log_metrics();
 namespace fps{
 	float fps;
     struct timeval t0;
@@ -519,7 +518,6 @@ namespace fps{
         gettimeofday(&tv,NULL);
         const time_t diff_s=tv.tv_sec-t0.tv_sec;
         const int diff_us=tv.tv_usec-t0.tv_usec;
-        //        t0=tv;
         return (float)diff_s+diff_us/1000000.f;
     }
 	inline void before_render(){
@@ -527,7 +525,6 @@ namespace fps{
     }
 	void after_render(){
 		const float d=dt();
-        //        LOGI("dt: %f\n",d);
 		if(d>3){
 			const int dframe=frameno-last_frameno;
 			last_frameno=frameno;
@@ -560,21 +557,14 @@ int gleso_init(){
 	p("%16s %4u B\n","glob",(unsigned int)sizeof(glob));
 	p("%16s %4u B\n","grid",(unsigned int)sizeof(grid));
 //	p("%16s %4lu B\n","physics",sizeof(physics));
-    srand(1);// generate same random numbers in different instances
+    srand(1);// generate same random numbers in every instance
 
 	if(!gl::shdr)gl::shdr=new shader();
-    if(!gl::shdr->load())return 1;
+    if(!gl::shdr->load())return-1;
     
     if(gleso::glos.empty()){//? if no glos declared re-init?
         gleso_impl_add_glos(gleso::glos);
-//        p(" glos %d\n",gleso::glos.size());
-//        for(glo*g:gleso::glos){
-//            p(" glo %p   %s\n",g,typeid(*g).name());
-//        }
-        foreach(gleso::glos,[](glo*g){
-//            p(" glo %p   %s\n",g,typeid(*g).name());
-        	g->load();
-        });
+        foreach(gleso::glos,[](glo*g){g->load();});
     }
     if(!gleso::grd){
     	gleso::grd=new grid();
@@ -599,7 +589,7 @@ void gleso_step(){
     gleso::grd->render();//? thread
 	fps::after_render();
 }
-//void gleso_on_context_destroyed(){
+//void gleso_on_context_destroyed(){//? opengl context destroyed, process context destroyed, why this?
 //	if(gl::shdr)delete gl::shdr;
 //	std::for_each(gleso::glos.begin(),gleso::glos.end(),[](glo*g){delete g;});
 //	if(gleso::grd)delete gleso::grd;
