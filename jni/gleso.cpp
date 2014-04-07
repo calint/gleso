@@ -24,7 +24,7 @@ class shader{
 	GLuint glid_program;
 	GLuint apos,umvp;
 public:
-    shader(){metrics::nshader++;}
+    shader():glid_program(0),apos(0),umvp(0){metrics::nshader++;}
 	virtual~shader(){
 		metrics::nshader--;
         if(glid_program){glDeleteProgram(glid_program);glid_program=0;}
