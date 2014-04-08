@@ -1,5 +1,7 @@
 // cross platform interface
 #ifndef GLESO_H
+int gleso_argc;
+char**gleso_argv;
 #ifdef __cplusplus
 #include"gles.h"
 extern "C" {
