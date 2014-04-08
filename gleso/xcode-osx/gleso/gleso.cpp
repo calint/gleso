@@ -450,9 +450,9 @@ protected:
 //#endif
 const int nsprites=32;//1024*4;
 static void gleso_impl_add_glos(std::vector<glo*>&glos){
-    glos.push_back(/*gives*/new glo());//? leak? push_pack does not /*take*/ ownership of object.
-    glos.push_back(/*gives*/new glo_square_xy());//? leak? push_pack does not /*take*/ ownership of object.
-    glos.push_back(/*gives*/new glo_circle_xy());//? leak? push_pack does not /*take*/ ownership of object.
+    glos.push_back(/*gives*/new glo());//? leak. push_pack does not /*take*/ ownership of glob
+    glos.push_back(/*gives*/new glo_square_xy());//? leak. push_pack does not /*takes*/
+    glos.push_back(/*gives*/new glo_circle_xy());//? leak. /*gives*/ not matched by /*takes*/
 }
 static/*gives*/glob*gleso_impl_create_root(){
     glob*g=new glob();
@@ -487,7 +487,7 @@ static/*gives*/glob*gleso_impl_create_root(){
 //
 //
 //
-//       stuff to scores -->   . o O *     <-- stuff to avoid getting hit by
+//       stuff that scores -->   . o O *     <-- stuff to avoid
 //
 //
 #include<algorithm>
@@ -501,7 +501,7 @@ public://                                          (:)
     void render(){foreach(globs,[](glob*g){g->render();});}// single thread opengl rendering
     void rem(glob*g){globs.remove(g);}//? multicore?||
     void clr(){globs.clear();}
-    //    void refresh(){}// refreshes the grid, globs dont change grid often, globs totallyinside (often) remain in grid, if maximum glob size less than grid size then    <-- procedurally generated text for vegetation
+    //    void refresh(){}// refreshes the grid, globs dont change grid often, globs often totally inside grid, maximum glob size less than grid    <-- procedurally generated text for vegetation
 };
 
 #include<sys/time.h>
