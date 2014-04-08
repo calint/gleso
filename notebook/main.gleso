@@ -26,7 +26,7 @@ c any
 	ra size_in_bytes  // readonly attribute
 	f load file : err // returns err or nothing
 	f save file : err
-	vfr render   // virtual readonly function
+	vrf render   // virtual readonly function
 .
 c document any   // document inherits any
 	vrfo render    // virtual readonly function overrides any::draw 
@@ -48,7 +48,7 @@ d.render
 > b=float(3)
 3.0
 > c=a+b
-a is int and b is float
+a is int and b is float. try c=float(a)+b
 > c=a+int(b)
 7
 > d=a,b,c    // d is a vector of size 3
