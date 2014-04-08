@@ -7,7 +7,9 @@ namespace metrics{
     unsigned int nshader;
     unsigned int nglo;
     unsigned int nglob;
-    void log(){p("/ metrics fps:%03d – shaders:%01d – glos:%02d – globs:%05d\n",fps,nshader,nglo,nglob);}
+    
+    float time_since_start_in_seconds;
+    void log(){p("/ metrics %2.2fs – fps:%03d – shaders:%01d – glos:%02d – globs:%05d\n",time_since_start_in_seconds,fps,nshader,nglo,nglob);}
 };
 ////////////////////////////////////////////////////////////////////////
 class shader;
@@ -193,7 +195,7 @@ public:
     }
 protected:
     virtual std::vector<GLfloat>make_vertices()const{
-    	p(" load glo\n");
+//    	p(" load glo\n");
         const GLfloat verts[]={0,.5f, -.5f,-.5f, .5f,-.5f};
         std::vector<GLfloat>v;
         v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
@@ -427,7 +429,7 @@ protected:
             v.push_back(x);
             v.push_back(y);
         }
-        p("circle  virtual call   vertices size %d\n",int(v.size()));
+//        p("circle  virtual call   vertices size %d\n",int(v.size()));
         return v;
     }
     virtual void gldraw()const{
@@ -448,7 +450,7 @@ protected:
 //#else
 //const int nsprites=1024;
 //#endif
-const int nsprites=32;//1024*4;
+//const int nsprites=32;//1024*4;
 static void gleso_impl_add_glos(std::vector<glo*>&glos){
     glos.push_back(/*gives*/new glo());//? leak. push_pack does not /*take*/ ownership of glob
     glos.push_back(/*gives*/new glo_square_xy());//? leak. push_pack does not /*takes*/
@@ -543,6 +545,7 @@ namespace fps{
 ////
 //  interface
 #include<typeinfo>
+static struct timeval timeval_after_init;
 int gleso_init(){
     shader::checkGlError("init");
     shader::printGLString("GL_VERSION",GL_VERSION);
@@ -562,6 +565,22 @@ int gleso_init(){
 	p("%16s %4u B\n","grid",(unsigned int)sizeof(grid));
 //	p("%16s %4lu B\n","physics",sizeof(physics));
     srand(1);// generate same random numbers in different instances
+    p("\nargs:\n");
+    char**a=gleso_argv;// command line arguments
+    int c=gleso_argc;
+    int nsprite=32;
+    while(c--){
+        const char*s=*a++;
+        if(*s!='-')continue;// looking for example: -s 100
+        if(*(s+1)=='s'){// found -s
+            const char*arg=*a++;//
+//            p("nsprite=%s\n",arg);
+            nsprite=atoi(arg);
+//            p("nsprite=%d\n",nsprite);
+            break;
+        }
+    }
+//    p("\n\n");
 
 	if(!gl::shdr)gl::shdr=new shader();
     if(!gl::shdr->load())return 1;
@@ -569,29 +588,37 @@ int gleso_init(){
     if(gleso::glos.empty()){//? if no glos declared re-init?
         gleso_impl_add_glos(gleso::glos);
 //        p(" glos %d\n",gleso::glos.size());
-        for(glo*g:gleso::glos){
-            p(" glo %p   %s\n",g,typeid(*g).name());
-        }
+//        for(glo*g:gleso::glos){
+//            p(" glo %p   %s\n",g,typeid(*g).name());
+//        }
         foreach(gleso::glos,[](glo*g){
-            p(" glo %p   %s\n",g,typeid(*g).name());
+//            p(" glo %p   %s\n",g,typeid(*g).name());
         	g->load();
         });
     }
     if(!gleso::grd){
     	gleso::grd=new grid();
-        for(int i=0;i<nsprites;i++)
+        for(int i=0;i<nsprite;i++)
             gleso::grd->add(/*gives*/gleso_impl_create_root());//? leak? grd->add does not take
     }
     fps::reset();
+    gettimeofday(&timeval_after_init,NULL);
+    metrics::time_since_start_in_seconds=0;
     return 0;
 }
 void gleso_on_viewport_change(int width,int height){
 	p("/// gleso_on_viewport_change %d x %d\n",width,height);
 	if(gl::shdr)gl::shdr->viewport(width,height);
 }
+static struct timeval tv;
 void gleso_step(){
 	fps::before_render();
     gleso::tick++;
+    gettimeofday(&tv,NULL);
+    const time_t diff_s=tv.tv_sec-timeval_after_init.tv_sec;
+    const int diff_us=tv.tv_usec-timeval_after_init.tv_usec;
+    metrics::time_since_start_in_seconds=(float)diff_s+diff_us/1000000.f;
+
     gleso::dt=floato(1./60);
     glClearColor(0,0,floato(.2),1);
     glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);

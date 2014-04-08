@@ -48,4 +48,5 @@
 */
 
 #import <Cocoa/Cocoa.h>
-int main(int argc, char**argv){return NSApplicationMain(argc,(const char**)argv);}
+#include "gleso.h"
+int main(int argc, char**argv){gleso_argc=argc;gleso_argv=argv;return NSApplicationMain(argc,(const char**)argv);}
