@@ -7,8 +7,10 @@ namespace metrics{
     unsigned int nshader;
     unsigned int nglo;
     unsigned int nglob;
-    void log(){p("/ metrics fps:%03d – shaders:%01d – glos:%02d – globs:%05d\n",fps,nshader,nglo,nglob);}
-}
+    
+    float time_since_start_in_seconds;
+    void log(){p("/ metrics %2.2fs – fps:%03d – shaders:%01d – glos:%02d – globs:%05d\n",time_since_start_in_seconds,fps,nshader,nglo,nglob);}
+};
 ////////////////////////////////////////////////////////////////////////
 class shader;
 namespace gl{
@@ -57,7 +59,7 @@ public:
 
 	static bool checkGlError(const char*op){
 		bool err=false;
-        for(GLint error=glGetError();error;error=glGetError()){
+        for(GLenum error=glGetError();error;error=glGetError()){
 			p("at %s() glError (0x%x):  %s\n",op,error,get_gl_error_string(error));
             err=true;
         }
@@ -78,7 +80,7 @@ public:
 		glGetShaderiv(shader,GL_INFO_LOG_LENGTH,&infolen);
 //		LOGE("info log len: %d\n",infolen);
 		if(!infolen)return 0;
-		char*buf=(char*)malloc(infolen);
+		char*buf=(char*)malloc(size_t(infolen));
 		if(!buf)return 0;
 		glGetShaderInfoLog(shader,infolen,NULL,buf);
 		p("Could not compile shader %d:\n%s\n",shader_type, buf);
@@ -118,7 +120,7 @@ private:
 		GLint bufLength=0;
 		glGetProgramiv(glid_program,GL_INFO_LOG_LENGTH,&bufLength);
 		if(bufLength){
-			char*buf=(char*)malloc(bufLength);
+			char*buf=(char*)malloc(size_t(bufLength));
 			if(buf){
 				glGetProgramInfoLog(glid_program,bufLength,NULL,buf);
 				p("Could not link program:\n%s\n",buf);
@@ -130,16 +132,16 @@ private:
 		return false;
 	}
 protected:
-    inline GLuint get_attribute_location(const char*name){return glGetAttribLocation(glid_program,name);}
-    inline GLuint get_uniform_location(const char*name){return glGetUniformLocation(glid_program,name);}
+    inline GLint get_attribute_location(const char*name){return glGetAttribLocation(glid_program,name);}
+    inline GLint get_uniform_location(const char*name){return glGetUniformLocation(glid_program,name);}
     
 #define shader_source_vertex "#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}"
 #define shader_source_fragment "#version 100\nvoid main(){gl_FragColor=vec4(gl_FragCoord.x,gl_FragCoord.y,.2,1.);}"
     inline virtual const char*vertex_shader_source()const{return shader_source_vertex;}
     inline virtual const char*fragment_shader_source()const{return shader_source_fragment;}
     
-    #define A(x,y)if((x=get_attribute_location(y))==-1)return-1;
-    #define U(x,y)if((x=get_uniform_location(y))==-1)return-1;
+    #define A(x,y)if((x=(GLuint)get_attribute_location(y))==(GLuint)-1)return-1;
+    #define U(x,y)if((x=(GLuint)get_uniform_location(y))==(GLuint)-1)return-1;
     virtual int bind(){
         A(apos,"apos");
         U(umvp,"umvp");
@@ -173,7 +175,7 @@ public:
         glGenBuffers(1,&glid_buffer_vertices);
         glBindBuffer(GL_ARRAY_BUFFER,glid_buffer_vertices);
         const std::vector<GLfloat>vec=make_vertices();
-        glBufferData(GL_ARRAY_BUFFER,vec.size()*sizeof(GLfloat),vec.data(),GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER,GLsizeiptr(vec.size()*sizeof(GLfloat)),vec.data(),GL_STATIC_DRAW);
         if(shader::checkGlError("load"))return 1;
 #endif
 		return 0;
@@ -253,11 +255,11 @@ private:
 class render_info{
 public:
     inline const p3&position()const{return p;}
-    inline render_info&position(const p3&p){this->p=p;return*this;}
+    inline render_info&position(const p3&pos){p=pos;return*this;}
     inline const p3&angle()const{return a;}
-    inline render_info&angle(const p3&a){this->a=a;return*this;}
+    inline render_info&angle(const p3&agl){a=agl;return*this;}
     inline const p3&scale()const{return s;}
-    inline render_info&scale(const p3&s){this->s=s;return*this;}
+    inline render_info&scale(const p3&scl){s=scl;return*this;}
 private:
     p3 p,a,s;
 };
@@ -287,7 +289,7 @@ static void mtxRotateZApply(floato* mtx, floato deg)
 	// [ 2 6 10 14 ]   [ 0   0    1  0 ]
 	// [ 3 7 11 15 ]   [ 0   0    0  1 ]
 
-	float rad = deg * (M_PI/180.0f);
+	float rad = deg*float(M_PI/180.0f);
 
 	float cosrad = cosf(rad);
 	float sinrad = sinf(rad);
@@ -369,7 +371,7 @@ public:
         matrix_model_world.append_rotation_about_z_axis(render_info.angle().z());
         matrix_model_world.append_scaling(render_info.scale());
 //        LOGI("scale x %f\n",render_info.scale().x());
-        glUniformMatrix4fv(gl::umvp,1,false,matrix_model_world.array());
+        glUniformMatrix4fv(GLint(gl::umvp),1,false,matrix_model_world.array());
         glo->render();
 	}
     void update(){
@@ -419,7 +421,7 @@ protected:
         v.push_back(0);//x
         v.push_back(0);//y
         floato rad=0;
-        const floato drad=2*M_PI/12;
+        const floato drad=2*float(M_PI/12);
         for(int i=1;i<=nvertices;i++){
             const floato x=cosf(rad);
             const floato y=sinf(rad);
@@ -427,7 +429,7 @@ protected:
             v.push_back(x);
             v.push_back(y);
         }
-//        p("circle  virtual call   vertices size %d\n",v.size());
+//        p("circle  virtual call   vertices size %d\n",int(v.size()));
         return v;
     }
     virtual void gldraw()const{
@@ -448,20 +450,20 @@ protected:
 //#else
 //const int nsprites=1024;
 //#endif
-const int nsprites=32;//1024*4;
+//const int nsprites=32;//1024*4;
 static void gleso_impl_add_glos(std::vector<glo*>&glos){
-    glos.push_back(/*gives*/new glo());//? leak? push_pack does not /*take*/ ownership of object.
-    glos.push_back(/*gives*/new glo_square_xy());//? leak? push_pack does not /*take*/ ownership of object.
-    glos.push_back(/*gives*/new glo_circle_xy());//? leak? push_pack does not /*take*/ ownership of object.
+    glos.push_back(/*gives*/new glo());//? leak. push_pack does not /*take*/ ownership of glob
+    glos.push_back(/*gives*/new glo_square_xy());//? leak. push_pack does not /*takes*/
+    glos.push_back(/*gives*/new glo_circle_xy());//? leak. /*gives*/ not matched by /*takes*/
 }
 static/*gives*/glob*gleso_impl_create_root(){
     glob*g=new glob();
-    const floato s=.025;
+    const floato s=floato(.025);
     g->scale(p3{s,s}).glo_ref(gleso::glos[2]);
     physics&p=g->physics();
     p.pos().x(2*gleso::rnd()-1);
     p.pos().y(2*gleso::rnd()-1);
-    p.dpos().x(.01);
+    p.dpos().x(floato(.01));
     p.dagl().z(360/60);
     return g;
 }
@@ -487,7 +489,7 @@ static/*gives*/glob*gleso_impl_create_root(){
 //
 //
 //
-//       stuff to scores -->   . o O *     <-- stuff to avoid getting hit by
+//       stuff that scores -->   . o O *     <-- stuff to avoid
 //
 //
 #include<algorithm>
@@ -501,7 +503,7 @@ public://                                          (:)
     void render(){foreach(globs,[](glob*g){g->render();});}// single thread opengl rendering
     void rem(glob*g){globs.remove(g);}//? multicore?||
     void clr(){globs.clear();}
-    //    void refresh(){}// refreshes the grid, globs dont change grid often, globs totallyinside (often) remain in grid, if maximum glob size less than grid size then    <-- procedurally generated text for vegetation
+    //    void refresh(){}// refreshes the grid, globs dont change grid often, globs often totally inside grid, maximum glob size less than grid    <-- procedurally generated text for vegetation
 };
 
 #include<sys/time.h>
@@ -531,7 +533,8 @@ namespace fps{
 		if(d>3){
 			const int dframe=frameno-last_frameno;
 			last_frameno=frameno;
-            metrics::fps=fps=dframe/d;
+            fps=dframe/d;
+            metrics::fps=(unsigned int)fps;
 			reset();
             metrics::log();
 		}
@@ -542,6 +545,7 @@ namespace fps{
 ////
 //  interface
 #include<typeinfo>
+static struct timeval timeval_after_init;
 int gleso_init(){
     shader::checkGlError("init");
     shader::printGLString("GL_VERSION",GL_VERSION);
@@ -561,6 +565,22 @@ int gleso_init(){
 	p("%16s %4u B\n","grid",(unsigned int)sizeof(grid));
 //	p("%16s %4lu B\n","physics",sizeof(physics));
     srand(1);// generate same random numbers in different instances
+    p("\nargs:\n");
+    char**a=gleso_argv;// command line arguments
+    int c=gleso_argc;
+    int nsprite=32;
+    while(c--){
+        const char*s=*a++;
+        if(*s!='-')continue;// looking for example: -s 100
+        if(*(s+1)=='s'){// found -s
+            const char*arg=*a++;//
+//            p("nsprite=%s\n",arg);
+            nsprite=atoi(arg);
+//            p("nsprite=%d\n",nsprite);
+            break;
+        }
+    }
+//    p("\n\n");
 
 	if(!gl::shdr)gl::shdr=new shader();
     if(!gl::shdr->load())return 1;
@@ -578,21 +598,29 @@ int gleso_init(){
     }
     if(!gleso::grd){
     	gleso::grd=new grid();
-        for(int i=0;i<nsprites;i++)
+        for(int i=0;i<nsprite;i++)
             gleso::grd->add(/*gives*/gleso_impl_create_root());//? leak? grd->add does not take
     }
     fps::reset();
+    gettimeofday(&timeval_after_init,NULL);
+    metrics::time_since_start_in_seconds=0;
     return 0;
 }
 void gleso_on_viewport_change(int width,int height){
 	p("/// gleso_on_viewport_change %d x %d\n",width,height);
 	if(gl::shdr)gl::shdr->viewport(width,height);
 }
+static struct timeval tv;
 void gleso_step(){
 	fps::before_render();
     gleso::tick++;
-    gleso::dt=1./60;
-    glClearColor(0,0,.2,1);
+    gettimeofday(&tv,NULL);
+    const time_t diff_s=tv.tv_sec-timeval_after_init.tv_sec;
+    const int diff_us=tv.tv_usec-timeval_after_init.tv_usec;
+    metrics::time_since_start_in_seconds=(float)diff_s+diff_us/1000000.f;
+
+    gleso::dt=floato(1./60);
+    glClearColor(0,0,floato(.2),1);
     glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 	gl::shdr->use_program();
     gleso::grd->update();//? thread
