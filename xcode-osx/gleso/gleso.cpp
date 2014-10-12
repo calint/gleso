@@ -89,7 +89,7 @@ public:
 		return 0;
 	}
 	bool load(){
-	    createProgram(vertex_shader_source(),fragment_shader_source());
+	    createProgram(vertex_shader_source(),fragment_shader_source(),geometry_shader_source());
         if(checkGlError("program"))return false;
         return !bind();
 	}
@@ -99,12 +99,15 @@ public:
         prepare_gl_for_render();
 	}
 private:
-	bool createProgram(const char*vertex_shader_source,const char*fragment_shader_source){
+	bool createProgram(const char*vertex_shader_source,const char*fragment_shader_source,const char*geometry_shader_source){
 		GLuint glid_vertex_shader=loadShader(GL_VERTEX_SHADER,vertex_shader_source);
 		if(!glid_vertex_shader)return false;
         
 		GLuint glid_pixel_shader=loadShader(GL_FRAGMENT_SHADER,fragment_shader_source);
 		if(!glid_pixel_shader)return false;
+        
+        GLuint glid_geometry_shader=loadShader(GL_GEOMETRY_SHADER,geometry_shader_source);
+        if(!glid_geometry_shader)return false;
         
 		glid_program=glCreateProgram();
 		if(!glid_program)return false;
@@ -136,9 +139,11 @@ protected:
     inline GLint get_uniform_location(const char*name){return glGetUniformLocation(glid_program,name);}
     
 #define shader_source_vertex "#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}"
-#define shader_source_fragment "#version 100\nvoid main(){gl_FragColor=vec4(gl_FragCoord.x,gl_FragCoord.y,.2,1.);}"
+#define shader_source_fragment "#version 100\nvoid main(){gl_FragColor=vec4(gl_FragCoord.x/1000.,gl_FragCoord.y/1000.,.1,1.);}"
+#define shader_source_geometry "#version 330\nlayout(triangles)in;\nlayout(triangle_strip,max_vertices=3)out;\nvoid main(){\nfor(int i=0;i<3;i++){gl_Position =gl_in[i].gl_Position;EmitVertex();}EndPrimitive();}";
     inline virtual const char*vertex_shader_source()const{return shader_source_vertex;}
     inline virtual const char*fragment_shader_source()const{return shader_source_fragment;}
+    inline virtual const char*geometry_shader_source()const{return shader_source_geometry;}
     
     #define A(x,y)if((x=(GLuint)get_attribute_location(y))==(GLuint)-1)return-1;
     #define U(x,y)if((x=(GLuint)get_uniform_location(y))==(GLuint)-1)return-1;

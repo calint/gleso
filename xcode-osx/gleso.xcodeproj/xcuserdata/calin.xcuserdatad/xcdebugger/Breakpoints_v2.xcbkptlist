@@ -58,11 +58,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "gleso/gleso.cpp"
-            timestampString = "434781518.409881"
+            timestampString = "434786059.567425"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "258"
-            endingLineNumber = "258"
+            startingLineNumber = "263"
+            endingLineNumber = "263"
             landmarkName = "class render_info"
             landmarkType = "3">
          </BreakpointContent>
