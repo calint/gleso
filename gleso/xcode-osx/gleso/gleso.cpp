@@ -43,15 +43,8 @@ public:
             case GL_INVALID_ENUM:str="GL_INVALID_ENUM";break;
             case GL_INVALID_VALUE:str="GL_INVALID_VALUE";break;
             case GL_INVALID_OPERATION:str="GL_INVALID_OPERATION";break;
-#if defined __gl_h_ || defined __gl3_h_
             case GL_OUT_OF_MEMORY:str="GL_OUT_OF_MEMORY";break;
             case GL_INVALID_FRAMEBUFFER_OPERATION:str="GL_INVALID_FRAMEBUFFER_OPERATION";break;
-#endif
-#if defined __gl_h_
-            case GL_STACK_OVERFLOW:str="GL_STACK_OVERFLOW";break;
-            case GL_STACK_UNDERFLOW:str="GL_STACK_UNDERFLOW";break;
-            case GL_TABLE_TOO_LARGE:str="GL_TABLE_TOO_LARGE";break;
-#endif
             default:str="(ERROR: Unknown Error Enum)";break;
         }
         return str;
@@ -554,10 +547,10 @@ static struct timeval timeval_after_init;
 int gleso_init(){
     shader::checkGlError("init");
     shader::printGLString("GL_VERSION",GL_VERSION);
-    shader::printGLString("GL_VENDOR",GL_VENDOR);
-    shader::printGLString("GL_RENDERER",GL_RENDERER);
-    //shader::printGLString("Extensions",GL_EXTENSIONS);
     shader::printGLString("GL_SHADING_LANGUAGE_VERSION",GL_SHADING_LANGUAGE_VERSION);
+    shader::printGLString("GL_RENDERER",GL_RENDERER);
+    shader::printGLString("GL_VENDOR",GL_VENDOR);
+    //shader::printGLString("Extensions",GL_EXTENSIONS);
     shader::checkGlError("after opengl info");
 
 	p("/// gleso init\n");
@@ -566,7 +559,9 @@ int gleso_init(){
 	p("%16s %4u B\n","p3",(unsigned int)sizeof(p3));
 	p("%16s %4u B\n","m4",(unsigned int)sizeof(m4));
 	p("%16s %4u B\n","glo",(unsigned int)sizeof(glo));
-	p("%16s %4u B\n","glob",(unsigned int)sizeof(glob));
+    p("%16s %4u B\n","glob",(unsigned int)sizeof(glob));
+    p("%16s %4u B\n","physics",(unsigned int)sizeof(physics));
+	p("%16s %4u B\n","render_info",(unsigned int)sizeof(render_info));
 	p("%16s %4u B\n","grid",(unsigned int)sizeof(grid));
 //	p("%16s %4lu B\n","physics",sizeof(physics));
     srand(1);// generate same random numbers in different instances
