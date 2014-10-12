@@ -350,13 +350,13 @@ public:
 //class glob:public linked_list{
 class glob{
 	const class glo*glo;
-    class physics phys;// current physics state
-    class physics phys_prv;// previous physics state
-    class physics phys_nxt;// next physics state, computed during update
+    physics phys;// current physics state
+    physics phys_prv;// previous physics state
+    physics phys_nxt;// next physics state, computed during update
     m4 matrix_model_world;
-    class render_info render_info;// info for opengl rendering
-    class render_info render_info_next;// next renderinfo, updated during render
-    p3 scal;
+    render_info rend_info;// info for opengl rendering
+    render_info rend_info_next;// next renderinfo, updated during render
+    p3 scal;//scale
 public:
 	glob():glo(0){metrics::nglob++;}
 	virtual ~glob(){}
@@ -366,10 +366,10 @@ public:
     inline glob&scale(const p3&scale){scal=scale;return*this;}
 	void render(){
 		if(!glo)return;
-        render_info=render_info_next;
-        matrix_model_world.load_translate(render_info.position());
-        matrix_model_world.append_rotation_about_z_axis(render_info.angle().z());
-        matrix_model_world.append_scaling(render_info.scale());
+        rend_info=rend_info_next;
+        matrix_model_world.load_translate(rend_info.position());
+        matrix_model_world.append_rotation_about_z_axis(rend_info.angle().z());
+        matrix_model_world.append_scaling(rend_info.scale());
 //        LOGI("scale x %f\n",render_info.scale().x());
         glUniformMatrix4fv(GLint(gl::umvp),1,false,matrix_model_world.array());
         glo->render();
@@ -379,9 +379,9 @@ public:
         phys.scale()=scal;
         phys.update();
         on_update();
-        render_info_next.position(phys.position());
-        render_info_next.angle(phys.angle());
-        render_info_next.scale(phys.scale());
+        rend_info_next.position(phys.position());
+        rend_info_next.angle(phys.angle());
+        rend_info_next.scale(phys.scale());
     }
     virtual void on_update(){
         if(phys.pos().x()>1)phys.dpos().x(-phys.dpos().x());
@@ -551,7 +551,7 @@ int gleso_init(){
     shader::printGLString("GL_VERSION",GL_VERSION);
     shader::printGLString("GL_VENDOR",GL_VENDOR);
     shader::printGLString("GL_RENDERER",GL_RENDERER);
-    //	    printGLString("Extensions",GL_EXTENSIONS);
+    //shader::printGLString("Extensions",GL_EXTENSIONS);
     shader::printGLString("GL_SHADING_LANGUAGE_VERSION",GL_SHADING_LANGUAGE_VERSION);
     shader::checkGlError("after opengl info");
 
