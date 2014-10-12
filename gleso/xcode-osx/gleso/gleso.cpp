@@ -138,7 +138,7 @@ protected:
     inline GLint get_uniform_location(const char*name){return glGetUniformLocation(glid_program,name);}
     
 //#define shader_source_vertex "#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}"
-#define shader_source_vertex "#version 410\nuniform mat4 umvp;in vec4 apos;out vec4 coord;void main(){gl_Position=umvp*apos;coord=vec4(apos.x*1000,0,0,1);}"
+#define shader_source_vertex "#version 410\nuniform mat4 umvp;in vec4 apos;out vec4 coord;void main(){gl_Position=umvp*apos;coord=vec4((gl_Position.y+.5)*1000,0,0,1);}"
 #define shader_source_geometry "#version 410\nlayout(triangles)in;\nlayout(triangle_strip,max_vertices=3)out;\nvoid main(){\nfor(int i=0;i<3;i++){gl_Position =gl_in[i].gl_Position;EmitVertex();}EndPrimitive();}";
 #define shader_source_fragment "#version 410\nin vec4 coord;out vec4 colr;void main(){colr=vec4(coord.x/1000.,coord.y/1000.,.1,1.);}"
     inline virtual const char*vertex_shader_source()const{return shader_source_vertex;}
