@@ -363,8 +363,9 @@ class glob{
     render_info rend_info_next;// next renderinfo, updated during render
     p3 scal;//scale
 public:
+    int bits;
 	glob():glo(0){metrics::nglob++;}
-	virtual ~glob(){}
+	virtual ~glob(){metrics::nglob--;}
 	inline glob&glo_ref(const class glo*g){glo=g;return*this;}
     inline class physics&physics(){return phys;}
     inline const p3&scale()const{return scal;}
@@ -389,6 +390,7 @@ public:
         rend_info_next.scale(phys.scale());
     }
     virtual void on_update(){
+        if(phys.pos().x()>.5f){bits|=1;return;}
         if(phys.pos().x()>1)phys.dpos().x(-phys.dpos().x());
         else if(phys.pos().x()<-1)phys.dpos().x(-phys.dpos().x());
     }
@@ -500,11 +502,30 @@ static/*gives*/glob*gleso_impl_create_root(){
 #include<algorithm>
 #define foreach(c,f)std::for_each(c.begin(),c.end(),f)
 class grid{
-	std::list<glob*>globs;//                        _
+    std::list<glob*>globs_add;
+	std::list<glob*>globs;
+    std::list<glob*>globs_rem;//                    _
 public://                                          (:)
 	grid(){}//                                    __|__         <- "long neck"
-    void add(glob*g){globs.push_back(g);}        //(.)\\          //
-    void update(){foreach(globs,[](glob*g){g->update();});}//? multicore?
+    void add(glob*g){globs_add.push_back(g);}    //(.)\\          //
+    void update(){
+        globs.splice(globs.end(),globs_add);
+//        foreach(globs_add,[this](glob*g){
+//            globs.push_back(g);
+//        });
+//        globs_add.clear();
+        foreach(globs,[this](glob*g){
+            g->update();
+            if(g->bits&&1==1)
+                this->globs_rem.push_back(g);
+        });
+        foreach(globs_rem,[this](glob*g){
+            globs.remove(g);
+            delete g;
+        });
+        globs_rem.clear();
+//        printf("globs: %lu\n",globs.size());
+    }//? multicore?
     void render(){foreach(globs,[](glob*g){g->render();});}// single thread opengl rendering
     void rem(glob*g){globs.remove(g);}//? multicore?||
     void clr(){globs.clear();}
@@ -629,7 +650,7 @@ void gleso_step(){
     gleso::dt=floato(1./60);
     glClearColor(0,0,floato(.2),1);
     glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
-	gl::shdr->use_program();
+	gl::shdr->use_program();//? if other
     gleso::grd->update();//? thread
     gleso::grd->render();//? thread
 	fps::after_render();
