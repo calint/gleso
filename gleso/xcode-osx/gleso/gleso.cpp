@@ -527,8 +527,8 @@ public://                                          (:)
 //        printf("globs: %lu\n",globs.size());
     }//? multicore?
     void render(){foreach(globs,[](glob*g){g->render();});}// single thread opengl rendering
-    void rem(glob*g){globs.remove(g);}//? multicore?||
-    void clr(){globs.clear();}
+//    void rem(glob*g){globs.remove(g);}//? multicore?||
+//    void clr(){globs.clear();}
     //    void refresh(){}// refreshes the grid, globs dont change grid often, globs often totally inside grid, maximum glob size less than grid    <-- procedurally generated text for vegetation
 };
 
@@ -634,7 +634,7 @@ int gleso_init(){
     metrics::time_since_start_in_seconds=0;
     return 0;
 }
-void gleso_on_viewport_change(int width,int height){
+void gleso_on_viewport_change(const int width,const int height){
 	p("/// gleso_on_viewport_change %d x %d\n",width,height);
 	if(gl::shdr)gl::shdr->viewport(width,height);
 }
