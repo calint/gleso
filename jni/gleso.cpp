@@ -1,4 +1,5 @@
-#include"gleso.h"
+#include "gleso.h"
+
 #include<stdlib.h>
 #include<string.h>
 ////////////////////////////////////////////////////////////////////////
@@ -468,31 +469,32 @@ static/*gives*/glob*gleso_impl_create_root(){
     p.dagl().z(360/60);
     return g;
 }
-// ascii sprite kit
-//
-//             ____
-//            |O  O|
-//            |_  _|         <- "medusa"
-//             /||\
-//
-// _______________
-//   |____|     <- stuff to slide under
-//  //||\|\\
-//
-//
-// _______________     <- floor and roof
-//
-//
-//
-//
-//     _\|/_
-// _____/ \_______   <- stuff to jump over
-//
-//
-//
-//       stuff that scores -->   . o O *     <-- stuff to avoid
-//
-//
+/*
+ ascii sprite kit
+
+             ____
+            |O  O|
+            |_  _|         <- "medusa"
+             /||\
+
+ _______________
+   |____|     <- stuff to slide under
+  //||\|\\
+
+
+ _______________     <- floor and roof
+
+
+
+
+     _\|/_
+ _____/ \_______   <- stuff to jump over
+
+
+
+       stuff that scores -->   . o O *     <-- stuff to avoid
+
+*/
 #include<algorithm>
 #define foreach(c,f)std::for_each(c.begin(),c.end(),f)
 class grid{
