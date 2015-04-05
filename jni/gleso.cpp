@@ -637,10 +637,10 @@ void gleso_step(){
 //}
 ///////////////////////////////
 void gleso_key(int key,int scancode,int action,int mods){
-	printf("key_callback  key=%d   scancode=%d    action=%d   mods=%d\n",key,scancode,action,mods);
+	printf("gleso_key  key=%d   scancode=%d    action=%d   mods=%d\n",key,scancode,action,mods);
 }
 void gleso_touch(floato x,floato y,int action){
-	printf("gleso_touch  x=%x   y=%d    action=%d\n",x,y,action);
+	printf("gleso_touch  x=%f   y=%f    action=%d\n",x,y,action);
 }
 
 
