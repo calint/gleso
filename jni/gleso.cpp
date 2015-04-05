@@ -568,22 +568,22 @@ int gleso_init(){
 	p("%16s %4u B\n","grid",(unsigned int)sizeof(grid));
 //	p("%16s %4lu B\n","physics",sizeof(physics));
     srand(1);// generate same random numbers in different instances
-    p("\nargs:\n");
-    char**a=gleso_argv;// command line arguments
-    int c=gleso_argc;
     int nsprite=1024;
-    while(c--){
-        const char*s=*a++;
-        if(*s!='-')continue;// looking for example: -s 100
-        if(*(s+1)=='s'){// found -s
-            const char*arg=*a++;//
-//            p("nsprite=%s\n",arg);
-            nsprite=atoi(arg);
-//            p("nsprite=%d\n",nsprite);
-            break;
-        }
-    }
-//    p("\n\n");
+//    p("\nargs:\n");
+//    char**a=gleso_argv;// command line arguments
+//    int c=gleso_argc;
+//    while(c--){
+//        const char*s=*a++;
+//        if(*s!='-')continue;// looking for example: -s 100
+//        if(*(s+1)=='s'){// found -s
+//            const char*arg=*a++;//
+////            p("nsprite=%s\n",arg);
+//            nsprite=atoi(arg);
+////            p("nsprite=%d\n",nsprite);
+//            break;
+//        }
+//    }
+    p("\n\n");
 
 	if(!gl::shdr)gl::shdr=new shader();
     if(!gl::shdr->load())return 1;
@@ -636,7 +636,12 @@ void gleso_step(){
 //	if(gleso::grd)delete gleso::grd;
 //}
 ///////////////////////////////
-
+void gleso_key(int key,int scancode,int action,int mods){
+	printf("key_callback  key=%d   scancode=%d    action=%d   mods=%d\n",key,scancode,action,mods);
+}
+void gleso_touch(floato x,floato y,int action){
+	printf("gleso_touch  x=%x   y=%d    action=%d\n",x,y,action);
+}
 
 
 

@@ -2,7 +2,8 @@ package a.gleso;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
-public class activity extends Activity{
+import android.view.MotionEvent;
+final public class activity extends Activity{
     private view view;
     @Override protected void onCreate(final Bundle b){
         Log.i("gleso","oncreate "+b);
@@ -28,4 +29,17 @@ public class activity extends Activity{
         Log.i("gleso","ondestroy");
     	super.onDestroy();
     }
+	@Override public boolean dispatchTouchEvent(final MotionEvent e){
+		Log.i("gleso","touch   x,y="+e.getX()+","+e.getY()+"  action="+e.getAction());
+		int action=0;
+		if(e.getAction()==MotionEvent.ACTION_DOWN){
+			action=1;
+		}else if(e.getAction()==MotionEvent.ACTION_UP){
+			action=2;
+		}
+		final float x=e.getX();
+		final float y=e.getY();
+		jni.glesotouch(x,y,action);
+		return true;
+	}
 }

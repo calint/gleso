@@ -4,4 +4,6 @@ public class jni{
      public static native int glesoinit();
      public static native void glesoonviewportchange(int width, int height);
      public static native void glesostep();
+     public static native void glesokey(int key,int scancode,int action,int mod);
+     public static native void glesotouch(float x,float y,int action);
 }
