@@ -156,14 +156,15 @@ protected:
 ////////////////////////////////////////////////
 #include<vector>
 class glo{
+public:
 #ifdef GLESO_EMBEDDED
     std::vector<GLfloat>vertices;
+    glo(){metrics::nglo++;}
 #else
     GLuint glid_vao;
     GLuint glid_buffer_vertices;
+    glo():glid_vao(0),glid_buffer_vertices(0){metrics::nglo++;}
 #endif
-public:
-    glo(){metrics::nglo++;}
 	virtual~glo(){metrics::nglo--;}
 	int load(){
 //		p("glo load\n");
@@ -568,7 +569,7 @@ int gleso_init(){
     p("\nargs:\n");
     char**a=gleso_argv;// command line arguments
     int c=gleso_argc;
-    int nsprite=32;
+    int nsprite=1024;
     while(c--){
         const char*s=*a++;
         if(*s!='-')continue;// looking for example: -s 100
