@@ -154,7 +154,7 @@ void main(){
 const char*shader_source_fragment=R"(
 #version 100
 uniform sampler2D utex;
-varying vec2 vuv;
+varying mediump vec2 vuv;
 void main(){
 	gl_FragColor=texture2D(utex,vuv);
 }
@@ -183,25 +183,53 @@ void main(){
 #include<vector>
 using std::vector;
 
-		const int texture_width=2,texture_height=2;
-		const unsigned char texels_rgb[]={
-			0xff,0xff,0xff, 0xf0,0xf0,0xf0,
-			0xf0,0xf0,0xf0, 0xff,0xff,0xff,
-		};
-
+const int texture_width=2,texture_height=2;
+unsigned char texels_rgb[]={
+	0xff,0xff,0xff, 0xff,0x00,0x00,
+	0xff,0x00,0x00, 0xff,0xff,0xff,
+};
+class texture{
+public:
+	void load(){
+		glGenTextures(1,&glid_texture);
+		glBindTexture(GL_TEXTURE_2D,glid_texture);
+		glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,texture_width,texture_height,0,GL_RGB,GL_UNSIGNED_BYTE,texels_rgb);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	void enable(){
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(glid_texture,0);
+		glBindTexture(GL_TEXTURE_2D,glid_texture);
+	}
+	void refresh_from_data(){
+		glBindTexture(GL_TEXTURE_2D,glid_texture);
+		glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,texture_width,texture_height,0,GL_RGB,GL_UNSIGNED_BYTE,texels_rgb);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+private:
+	GLuint glid_texture{0};
+};
 class glo{
 public:
 #ifdef GLESO_EMBEDDED
 	vector<GLfloat>vertices;
 	vector<GLfloat>texture_coords;
-	GLuint glid_texture{0};
-	glo(){metrics::nglo++;}
+	class texture*tex{nullptr};
 #else
 	GLuint glid_vao{0};
 	GLuint glid_buffer_vertices{0};
-	glo(){metrics::nglo++;}
 #endif
+	glo(){metrics::nglo++;}
 	virtual~glo(){metrics::nglo--;}
+	inline glo&texture(texture*t){tex=t;return*this;}
 	int load(){// called when context is (re)created
 #ifdef GLESO_EMBEDDED
 		vertices=make_vertices();
@@ -215,49 +243,40 @@ public:
 		glBufferData(GL_ARRAY_BUFFER,GLsizeiptr(vec.size()*sizeof(GLfloat)),vec.data(),GL_STATIC_DRAW);
 		if(shader::checkGlError("load"))return 1;
 #endif
-
-		// texture
-		glGenTextures(1,&glid_texture);
-		glBindTexture(GL_TEXTURE_2D,glid_texture);
-		glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,texture_width,texture_height,0,GL_RGB,GL_UNSIGNED_BYTE,texels_rgb);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR); 
-		glGenerateMipmap(GL_TEXTURE_2D);
-
 		return 0;
 	}
 	void render()const{
 #ifdef GLESO_EMBEDDED
 		glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,&vertices[0]);
-		glVertexAttribPointer(gl::auv,2,GL_FLOAT,GL_FALSE,0,&texture_coords[0]);
 #else
 		glBindVertexArray(glid_vao);
 		glBindBuffer(GL_ARRAY_BUFFER,glid_buffer_vertices);
 		glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,0);
 #endif
 		glEnableVertexAttribArray(gl::apos);
-		glEnableVertexAttribArray(gl::auv);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D,glid_texture);
-		glUniform1i(glid_texture,0);
+		if(tex){
+			glVertexAttribPointer(gl::auv,2,GL_FLOAT,GL_FALSE,0,&texture_coords[0]);
+			glEnableVertexAttribArray(gl::auv);
+			tex->enable();
+		}
 
 		gldraw();
 
 		glDisableVertexAttribArray(gl::apos);
-		glDisableVertexAttribArray(gl::auv);
+		if(tex){
+			glDisableVertexAttribArray(gl::auv);
+		}
 	}
 protected:
 	virtual vector<GLfloat>make_vertices()const{
-		const GLfloat verts[]={0,.5f, -.5f,-.5f, .5f,-.5f};
-		vector<GLfloat>v;//{0,.5f, -.5f,-.5f, .5f,-.5f};
+		const GLfloat verts[]{0,1, -1,-1, 1,-1};
+		vector<GLfloat>v;
 		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
 		return v;
 	}
 	virtual vector<GLfloat>make_texture_coords()const{
-		const GLfloat verts[]={.5f,1, 0,0, 1,0};
+		const GLfloat verts[]{0,1, -1,-1, 1,-1};
 		vector<GLfloat>v;
 		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
 		return v;
@@ -289,6 +308,7 @@ namespace gleso{
 	inline floato d(const floato unit_over_second){return unit_over_second*dt;}
 	unsigned int tick;//?? rollover issues when used in comparisons
 	vector<glo*>glos;
+	vector<texture*>textures;
 	grid*grd;
 	floato rnd(){return floato(rand())/RAND_MAX;}
 }
@@ -502,62 +522,31 @@ protected:
 		glDrawArrays(GL_TRIANGLE_FAN,0,nvertices);
 	}
 };
-
-
-   /////  ///\   ///// ///// /////////
-   ///   ///\\\  ///   ///  // /// //
-  ///   ///  \\\///   ///     ///
-///// /////   \\\/  /////   /////
-
-
-//#ifndef GLESO_EMBEDDED
-//const int nsprites=1024*16;
-//#else
-//const int nsprites=1024;
-//#endif
-//const int nsprites=32;//1024*4;
-static void gleso_impl_add_glos(vector<glo*>&glos){
-	glos.push_back(/*gives*/new glo());//?? leak. push_pack does not /*take*/ ownership of glob
-	glos.push_back(/*gives*/new glo_square_xy());//?? leak. push_pack does not /*takes*/
-	glos.push_back(/*gives*/new glo_circle_xy());//?? leak. /*gives*/ not matched by /*takes*/
-}
-static/*gives*/glob*gleso_impl_create_root(){
-	glob*g=new glob();
-	const floato s=floato(.025);
-	g->scale(p3{s,s}).glo_ref(gleso::glos[1]);
-	physics&p=g->physics();
-	p.pos().x(2*gleso::rnd()-1);
-	p.pos().y(2*gleso::rnd()-1);
-	p.dpos().x(floato(.01));
-	p.dagl().z(360/60);
-	return g;
-}
-/*
- ascii sprite kit
-
-             ____
-            |O  O|
-            |_  _|         <- "medusa"
-             /||\
-
- _______________
-   |____|     <- stuff to slide under
-  //||\|\\
-
-
- _______________     <- floor and roof
-
-
-
-
-     _\|/_
- _____/ \_______   <- stuff to jump over
-
-
-
-       stuff that scores -->   . o O *     <-- stuff to avoid
-
-*/
+class glo_square_xyuv:public glo{
+public:
+	glo_square_xyuv(){
+		texture(gleso::textures[0]);
+	}
+	virtual vector<GLfloat>make_vertices()const{
+		const static GLfloat verts[]{-1,1, -1,-1, 1,-1, 1,1};
+		vector<GLfloat>v;
+		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
+		return v;
+	}
+	virtual vector<GLfloat>make_texture_coords()const{
+		const static GLfloat verts[]{-1,1, -1,-1, 1,-1, 1,1};
+		vector<GLfloat>v;
+		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
+		return v;
+	}
+	inline virtual void gldraw()const{
+		texels_rgb[0]++;
+		texels_rgb[1]++;
+		gleso::textures[0]->refresh_from_data();
+		glDrawArrays(GL_TRIANGLE_FAN,0,4);
+	}
+};
+//------------------------------------------------------------------------------
 #include<algorithm>
 #define foreach(c,f)std::for_each(c.begin(),c.end(),f)
 class grid{
@@ -571,7 +560,7 @@ public://                                          (:)
 	void clr(){globs.clear();}
 	//    void refresh(){}// refreshes the grid, globs dont change grid often, globs often totally inside grid, maximum glob size less than grid    <-- procedurally generated text for vegetation
 };
-
+//------------------------------------------------------------------------------
 #include<sys/time.h>
 namespace fps{
 	float fps;
@@ -603,6 +592,52 @@ namespace fps{
 		metrics::log();
 	}
 }
+//------------------------------------------------------------------------------
+/*
+   /////  ///\   ///// ///// /////////
+   ///   ///\\\  ///   ///  // /// //
+  ///   ///  \\\///   ///     ///
+///// /////   \\\/  /////   /////
+*/
+static void gleso_impl_add_resources(){
+	gleso::textures.push_back(/*gives*/new texture());//?? leak
+	gleso::glos.push_back(/*gives*/new glo());//?? leak. push_pack does not /*take*/ ownership of glob
+	gleso::glos.push_back(/*gives*/new glo_square_xy());//??
+	gleso::glos.push_back(/*gives*/new glo_circle_xy());//??
+	gleso::glos.push_back(/*gives*/new glo_square_xyuv());//??
+}
+static/*gives*/glob*gleso_impl_create_root(){
+	glob*g=new glob();
+	const floato s=floato{.9};
+	g->scale(p3{s,s}).glo_ref(gleso::glos[3]);
+	return g;
+}
+/*
+ ascii sprite kit
+
+             ____
+            |O  O|
+            |_  _|         <- "medusa"
+             /||\
+
+ _______________
+   |____|     <- stuff to slide under
+  //||\|\\
+
+
+ _______________     <- floor and roof
+
+
+
+
+     _\|/_
+ _____/ \_______   <- stuff to jump over
+
+
+
+       stuff that scores -->   . o O *     <-- stuff to avoid
+
+*/
 
 //////
 ////
@@ -626,43 +661,27 @@ int gleso_init(){
 	p("%16s %4u B\n","glo",(unsigned int)sizeof(glo));
 	p("%16s %4u B\n","glob",(unsigned int)sizeof(glob));
 	p("%16s %4u B\n","grid",(unsigned int)sizeof(grid));
-//	p("%16s %4lu B\n","physics",sizeof(physics));
+	p("%16s %4lu B\n","physics",sizeof(physics));
 	srand(1);// generate same random numbers in different instances
-	int nsprite=1024;
-//    p("\nargs:\n");
-//    char**a=gleso_argv;// command line arguments
-//    int c=gleso_argc;
-//    while(c--){
-//        const char*s=*a++;
-//        if(*s!='-')continue;// looking for example: -s 100
-//        if(*(s+1)=='s'){// found -s
-//            const char*arg=*a++;//
-////            p("nsprite=%s\n",arg);
-//            nsprite=atoi(arg);
-////            p("nsprite=%d\n",nsprite);
-//            break;
-//        }
-//    }
 	p("\n");
 
 	if(!gl::shdr)gl::shdr=new shader();
 	if(!gl::shdr->load())return 1;
 
 	if(gleso::glos.empty()){//? if no glos declared re-init?
-		gleso_impl_add_glos(gleso::glos);
-//        p(" glos %d\n",gleso::glos.size());
-//        for(glo*g:gleso::glos){
-//            p(" glo %p   %s\n",g,typeid(*g).name());
-//        }
-		foreach(gleso::glos,[](glo*g){
-			p(" glo %p   %s\n",(void*)g,typeid(*g).name());
-			g->load();
+		gleso_impl_add_resources();
+		foreach(gleso::textures,[](texture*o){
+			p(" texture %p   %s\n",(void*)o,typeid(*o).name());
+			o->load();
+		});
+		foreach(gleso::glos,[](glo*o){
+			p(" glo %p   %s\n",(void*)o,typeid(*o).name());
+			o->load();
 		});
 	}
 	if(!gleso::grd){
 		gleso::grd=new grid();
-		for(int i=0;i<nsprite;i++)
-			gleso::grd->add(/*gives*/gleso_impl_create_root());//? leak? grd->add does not take
+		gleso::grd->add(/*gives*/gleso_impl_create_root());//? leak? grd->add does not take
 	}
 	fps::reset();
 	gettimeofday(&timeval_after_init,NULL);
