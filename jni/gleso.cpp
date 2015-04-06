@@ -18,10 +18,11 @@ namespace gl{
 ////////////////////////////////////////////////////////////////////////
 #include<string>
 class shader{
-	GLuint glid_program;
-	GLuint apos,umvp;
+	GLuint glid_program{0};
+	GLuint apos{0};
+	GLuint umvp{0};
 public:
-	shader():glid_program(0),apos(0),umvp(0){metrics::nshader++;}
+	shader(){metrics::nshader++;}
 
 	virtual~shader(){
 		metrics::nshader--;
@@ -135,8 +136,20 @@ protected:
 	inline GLint get_attribute_location(const char*name){return glGetAttribLocation(glid_program,name);}
 	inline GLint get_uniform_location(const char*name){return glGetUniformLocation(glid_program,name);}
 
-#define shader_source_vertex "#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}"
-#define shader_source_fragment "#version 100\nvoid main(){gl_FragColor=vec4(gl_FragCoord.x,gl_FragCoord.y,.2,1.);}"
+const char*shader_source_vertex=R"(
+#version 100
+uniform mat4 umvp;
+attribute vec4 apos;
+void main(){
+	gl_Position=umvp*apos;
+}
+)";
+const char*shader_source_fragment=R"(
+#version 100
+void main(){
+    gl_FragColor=vec4(gl_FragCoord.x,gl_FragCoord.y,.2,1.);
+}
+)";
 	inline virtual const char*vertex_shader_source()const{return shader_source_vertex;}
 	inline virtual const char*fragment_shader_source()const{return shader_source_fragment;}
 
@@ -161,9 +174,9 @@ public:
 	std::vector<GLfloat>vertices;
 	glo(){metrics::nglo++;}
 #else
-	GLuint glid_vao;
-	GLuint glid_buffer_vertices;
-	glo():glid_vao(0),glid_buffer_vertices(0){metrics::nglo++;}
+	GLuint glid_vao=0;
+	GLuint glid_buffer_vertices=0;
+	glo(){metrics::nglo++;}
 #endif
 	virtual~glo(){metrics::nglo--;}
 	int load(){// called when context is (re)created
@@ -196,7 +209,7 @@ public:
 protected:
 	virtual std::vector<GLfloat>make_vertices()const{
 		const GLfloat verts[]={0,.5f, -.5f,-.5f, .5f,-.5f};
-		std::vector<GLfloat>v;
+		std::vector<GLfloat>v;//{0,.5f, -.5f,-.5f, .5f,-.5f};
 		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));//?? on stack then invalidated
 		return v;
 	}
@@ -333,13 +346,12 @@ void mtxScaleApply(floato* mtx, floato xScale, floato yScale, floato zScale)
 	mtx[11] *= xScale;
 }
 class m4{
-    floato c[16];
+	floato c[16]{0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0};
 public:
-    m4():c{0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0 }{}
-    inline m4&load_translate(const p3&p){mtxLoadTranslate(c,p.x(),p.y(),p.z());return*this;}
-    inline m4&append_rotation_about_z_axis(const floato degrees){mtxRotateZApply(c,degrees);return*this;}
-    inline m4&append_scaling(const p3&scale){mtxScaleApply(c,scale.x(),scale.y(),scale.z());return*this;}
-    inline const floato*array()const{return c;}
+	inline m4&load_translate(const p3&p){mtxLoadTranslate(c,p.x(),p.y(),p.z());return*this;}
+	inline m4&append_rotation_about_z_axis(const floato degrees){mtxRotateZApply(c,degrees);return*this;}
+	inline m4&append_scaling(const p3&scale){mtxScaleApply(c,scale.x(),scale.y(),scale.z());return*this;}
+	inline const floato*array()const{return c;}
 };
 //class linked_list{
 //	linked_list*nxt;
@@ -348,7 +360,7 @@ public:
 //class glob:public linked_list{
 //glo nullglo{};
 class glob{
-	const class glo*glo;// ref to gl renderable
+	const class glo*glo{nullptr};// ref to gl renderable
 	class physics phys;// current physics state
 	class physics phys_prv;// previous physics state
 	class physics phys_nxt;// next physics state, computed during update
@@ -357,7 +369,7 @@ class glob{
 	class render_info render_info_next;// next renderinfo, updated during render
 	p3 scal;
 public:
-	glob():glo(nullptr){metrics::nglob++;}
+	glob(){metrics::nglob++;}
 	virtual ~glob(){}
 	inline glob&glo_ref(const class glo*g){glo=g;return*this;}
 	inline class physics&physics(){return phys;}
@@ -399,7 +411,7 @@ public:
 class glo_square_xy:public glo{
 	virtual std::vector<GLfloat>make_vertices()const{
 		const static GLfloat verts[]={-1,1, -1,-1, 1,-1, 1,1};
-		std::vector<GLfloat>v;
+		std::vector<GLfloat>v;//{-1,1, -1,-1, 1,-1, 1,1};
 		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
 		return v;
 	}
@@ -522,14 +534,14 @@ namespace fps{
 	}
 	void after_render(){
 		const float d=dt();
- 		if(d>3){
-			const int dframe=frameno-last_frameno;
-			last_frameno=frameno;
-			fps=dframe/d;
-			metrics::fps=(unsigned int)fps;
-			reset();
-			metrics::log();
-		}
+		if(d<3)
+			return;
+		const int dframe=frameno-last_frameno;
+		last_frameno=frameno;
+		fps=dframe/d;
+		metrics::fps=(unsigned int)fps;
+		reset();
+		metrics::log();
 	}
 }
 
@@ -602,10 +614,10 @@ void gleso_on_viewport_change(int width,int height){
 	p("/// gleso_on_viewport_change %d x %d\n",width,height);
 	if(gl::shdr)gl::shdr->viewport(width,height);
 }
-static struct timeval tv;
 void gleso_step(){
 	fps::before_render();
 	gleso::tick++;
+	struct timeval tv;
 	gettimeofday(&tv,NULL);
 	const time_t diff_s=tv.tv_sec-timeval_after_init.tv_sec;
 	const int diff_us=tv.tv_usec-timeval_after_init.tv_usec;
