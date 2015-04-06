@@ -12,15 +12,19 @@ namespace metrics{
 class shader;
 namespace gl{
 	shader*shdr;
-	GLuint apos;// vec4 position x,y,z,w
+	GLuint apos;// vec2 vertex coords x,y
+	GLuint auv;// vec2 texture coords x,y
 	GLuint umvp;// mat4 model-world-view-projection matrix
+	GLuint utex;// texture sampler
 }
 ////////////////////////////////////////////////////////////////////////
 #include<string>
 class shader{
 	GLuint glid_program{0};
 	GLuint apos{0};
+	GLuint auv{0};
 	GLuint umvp{0};
+	GLuint utex{0};
 public:
 	shader(){metrics::nshader++;}
 
@@ -140,77 +144,122 @@ const char*shader_source_vertex=R"(
 #version 100
 uniform mat4 umvp;
 attribute vec4 apos;
+attribute vec2 auv;
+varying vec2 vuv;
 void main(){
 	gl_Position=umvp*apos;
+    vuv=auv;
 }
 )";
 const char*shader_source_fragment=R"(
 #version 100
+uniform sampler2D utex;
+varying vec2 vuv;
 void main(){
-    gl_FragColor=vec4(gl_FragCoord.x,gl_FragCoord.y,.2,1.);
+	gl_FragColor=texture2D(utex,vuv);
 }
 )";
 	inline virtual const char*vertex_shader_source()const{return shader_source_vertex;}
 	inline virtual const char*fragment_shader_source()const{return shader_source_fragment;}
 
-	#define A(x,y)if((x=(GLuint)get_attribute_location(y))==(GLuint)-1)return-1;
-	#define U(x,y)if((x=(GLuint)get_uniform_location(y))==(GLuint)-1)return-1;
+	#define A(x,y)if((x=(GLuint)get_attribute_location(y))==(GLuint)-1){p("shader: cannot find attribute %s\n",y);return-1;};
+	#define U(x,y)if((x=(GLuint)get_uniform_location(y))==(GLuint)-1){p("shader: cannot find uniform %s\n",y);return-1;}
 	virtual int bind(){
 		A(apos,"apos");
+		A(auv,"auv");
 		U(umvp,"umvp");
+		U(utex,"utex");
 		return 0;
 	}
 	inline virtual void prepare_gl_for_render(){
-		gl::apos=apos;
 		gl::umvp=umvp;
+		gl::utex=utex;
+		gl::apos=apos;
+		gl::auv=auv;
 	}
 };
 
 ////////////////////////////////////////////////
 #include<vector>
+using std::vector;
+
+		const int texture_width=2,texture_height=2;
+		const unsigned char texels_rgb[]={
+			0xff,0xff,0xff, 0xf0,0xf0,0xf0,
+			0xf0,0xf0,0xf0, 0xff,0xff,0xff,
+		};
+
 class glo{
 public:
 #ifdef GLESO_EMBEDDED
-	std::vector<GLfloat>vertices;
+	vector<GLfloat>vertices;
+	vector<GLfloat>texture_coords;
+	GLuint glid_texture{0};
 	glo(){metrics::nglo++;}
 #else
-	GLuint glid_vao=0;
-	GLuint glid_buffer_vertices=0;
+	GLuint glid_vao{0};
+	GLuint glid_buffer_vertices{0};
 	glo(){metrics::nglo++;}
 #endif
 	virtual~glo(){metrics::nglo--;}
 	int load(){// called when context is (re)created
 #ifdef GLESO_EMBEDDED
 		vertices=make_vertices();
+		texture_coords=make_texture_coords();
 #else
 		glGenVertexArrays(1,&glid_vao);
 		glBindVertexArray(glid_vao);
 		glGenBuffers(1,&glid_buffer_vertices);
 		glBindBuffer(GL_ARRAY_BUFFER,glid_buffer_vertices);
-		const std::vector<GLfloat>vec=make_vertices();
+		const vector<GLfloat>vec=make_vertices();
 		glBufferData(GL_ARRAY_BUFFER,GLsizeiptr(vec.size()*sizeof(GLfloat)),vec.data(),GL_STATIC_DRAW);
 		if(shader::checkGlError("load"))return 1;
 #endif
+
+		// texture
+		glGenTextures(1,&glid_texture);
+		glBindTexture(GL_TEXTURE_2D,glid_texture);
+		glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,texture_width,texture_height,0,GL_RGB,GL_UNSIGNED_BYTE,texels_rgb);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR); 
+		glGenerateMipmap(GL_TEXTURE_2D);
+
 		return 0;
 	}
 	void render()const{
 #ifdef GLESO_EMBEDDED
-//	    glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,vertices.data());
 		glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,&vertices[0]);
-		glEnableVertexAttribArray(gl::apos);
+		glVertexAttribPointer(gl::auv,2,GL_FLOAT,GL_FALSE,0,&texture_coords[0]);
 #else
 		glBindVertexArray(glid_vao);
 		glBindBuffer(GL_ARRAY_BUFFER,glid_buffer_vertices);
-		glEnableVertexAttribArray(gl::apos);
 		glVertexAttribPointer(gl::apos,2,GL_FLOAT,GL_FALSE,0,0);
 #endif
+		glEnableVertexAttribArray(gl::apos);
+		glEnableVertexAttribArray(gl::auv);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D,glid_texture);
+		glUniform1i(glid_texture,0);
+
 		gldraw();
+
+		glDisableVertexAttribArray(gl::apos);
+		glDisableVertexAttribArray(gl::auv);
 	}
 protected:
-	virtual std::vector<GLfloat>make_vertices()const{
+	virtual vector<GLfloat>make_vertices()const{
 		const GLfloat verts[]={0,.5f, -.5f,-.5f, .5f,-.5f};
-		std::vector<GLfloat>v;//{0,.5f, -.5f,-.5f, .5f,-.5f};
-		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));//?? on stack then invalidated
+		vector<GLfloat>v;//{0,.5f, -.5f,-.5f, .5f,-.5f};
+		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
+		return v;
+	}
+	virtual vector<GLfloat>make_texture_coords()const{
+		const GLfloat verts[]={.5f,1, 0,0, 1,0};
+		vector<GLfloat>v;
+		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
 		return v;
 	}
 	virtual void gldraw()const{
@@ -239,7 +288,7 @@ namespace gleso{
 	floato dt;
 	inline floato d(const floato unit_over_second){return unit_over_second*dt;}
 	unsigned int tick;//?? rollover issues when used in comparisons
-	std::vector<glo*>glos;
+	vector<glo*>glos;
 	grid*grd;
 	floato rnd(){return floato(rand())/RAND_MAX;}
 }
@@ -252,9 +301,11 @@ public:
 		da.add(dda,gleso::dt);
 		a.add(da,gleso::dt);
 	}
+	inline p3&position(){return p;}
 	inline p3&pos(){return p;}
-	inline p3&position(){return p;}inline p3&dpos(){return dp;}
-	inline p3&angle(){return a;}inline p3&dagl(){return da;}
+	inline p3&dpos(){return dp;}
+	inline p3&angle(){return a;}
+	inline p3&dagl(){return da;}
 	inline p3&scale(){return s;}
 private:
 	p3 p,dp,ddp;//position
@@ -322,7 +373,7 @@ static void mtxRotateZApply(floato* mtx, floato deg)
 	mtx[ 3] = mtx[ 7]*sinrad + mtx03*cosrad;
 	mtx[ 7] = mtx[ 7]*cosrad - mtx03*sinrad;
 }
-void mtxScaleApply(floato* mtx, floato xScale, floato yScale, floato zScale)
+static void mtxScaleApply(floato* mtx, floato xScale, floato yScale, floato zScale)
 {
 	// [ 0 4  8 12 ]   [ x 0 0 0 ]
 	// [ 1 5  9 13 ] x [ 0 y 0 0 ]
@@ -394,8 +445,10 @@ public:
 		render_info_next.scale(phys.scale());
 	}
 	virtual void on_update(){
-		if(phys.pos().x()>1)phys.dpos().x(-phys.dpos().x());
-		else if(phys.pos().x()<-1)phys.dpos().x(-phys.dpos().x());
+		if(phys.pos().x()>1)
+			phys.dpos().x(-phys.dpos().x());
+		else if(phys.pos().x()<-1)
+			phys.dpos().x(-phys.dpos().x());
 	}
 };
 /*-----------------------------
@@ -409,9 +462,15 @@ public:
 ------------------------------
 "defglo" */
 class glo_square_xy:public glo{
-	virtual std::vector<GLfloat>make_vertices()const{
+	virtual vector<GLfloat>make_vertices()const{
 		const static GLfloat verts[]={-1,1, -1,-1, 1,-1, 1,1};
-		std::vector<GLfloat>v;//{-1,1, -1,-1, 1,-1, 1,1};
+		vector<GLfloat>v;//{-1,1, -1,-1, 1,-1, 1,1};
+		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
+		return v;
+	}
+	virtual vector<GLfloat>make_texture_coords()const{
+		const static GLfloat verts[]={-1,1, -1,-1, 1,-1, 1,1};
+		vector<GLfloat>v;
 		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
 		return v;
 	}
@@ -424,8 +483,8 @@ class glo_circle_xy:public glo{
 public:
 	glo_circle_xy():nvertices(1+12+1){}
 protected:
-	virtual std::vector<GLfloat>make_vertices()const{
-		std::vector<GLfloat>v;
+	virtual vector<GLfloat>make_vertices()const{
+		vector<GLfloat>v;
 		v.push_back(0);//x
 		v.push_back(0);//y
 		floato rad=0;
@@ -457,7 +516,7 @@ protected:
 //const int nsprites=1024;
 //#endif
 //const int nsprites=32;//1024*4;
-static void gleso_impl_add_glos(std::vector<glo*>&glos){
+static void gleso_impl_add_glos(vector<glo*>&glos){
 	glos.push_back(/*gives*/new glo());//?? leak. push_pack does not /*take*/ ownership of glob
 	glos.push_back(/*gives*/new glo_square_xy());//?? leak. push_pack does not /*takes*/
 	glos.push_back(/*gives*/new glo_circle_xy());//?? leak. /*gives*/ not matched by /*takes*/
@@ -584,7 +643,7 @@ int gleso_init(){
 //            break;
 //        }
 //    }
-	p("\n\n");
+	p("\n");
 
 	if(!gl::shdr)gl::shdr=new shader();
 	if(!gl::shdr->load())return 1;
@@ -610,8 +669,8 @@ int gleso_init(){
 	metrics::time_since_start_in_seconds=0;
 	return 0;
 }
-void gleso_on_viewport_change(int width,int height){
-	p("/// gleso_on_viewport_change %d x %d\n",width,height);
+void gleso_viewport(int width,int height){
+	p("/// gleso_viewport  %d x %d\n",width,height);
 	if(gl::shdr)gl::shdr->viewport(width,height);
 }
 void gleso_step(){
@@ -623,7 +682,7 @@ void gleso_step(){
 	const int diff_us=tv.tv_usec-timeval_after_init.tv_usec;
 	metrics::time_since_start_in_seconds=(float)diff_s+diff_us/1000000.f;
 	gleso::dt=floato(1./60);
-	glClearColor(0,0,floato(.2),1);
+	glClearColor(floato{.5},0,floato{.5},1);
 	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 	gl::shdr->use_program();
 	gleso::grd->update();//? thread
@@ -637,22 +696,8 @@ void gleso_step(){
 //}
 ///////////////////////////////
 void gleso_key(int key,int scancode,int action,int mods){
-	printf("gleso_key  key=%d   scancode=%d    action=%d   mods=%d\n",key,scancode,action,mods);
+	p("gleso_key  key=%d   scancode=%d    action=%d   mods=%d\n",key,scancode,action,mods);
 }
 void gleso_touch(floato x,floato y,int action){
-	printf("gleso_touch  x=%f   y=%f    action=%d\n",x,y,action);
+	p("gleso_touch  x=%.1f   y=%.1f    action=%d\n",x,y,action);
 }
-
-
-
-//   clipboard
-
-
-//static const char vertex_shader_source[]="attribute vec4 apos;void main(){gl_Position=apos;}";
-//static const char fragment_shader_source[]="precision mediump float;void main(){gl_FragColor=vec4(0.0,1.0,0.0,1.0);}";
-//static const char vertex_shader_source[]="#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}";
-////static const char fragment_shader_source[]="#version 100\nvoid main(){gl_FragColor=vec4(.6,.3,.2,1.);}";
-//static const char vertex_shader_source_ch[]="#version 100\nuniform mat4 umvp;attribute vec4 apos;void main(){gl_Position=umvp*apos;}";
-//static const char fragment_shader_source_ch[]="#version 100\nvoid main(){gl_FragColor=vec4(gl_FragCoord.x,gl_FragCoord.y,.2,1.);}";
-
-

@@ -1,4 +1,5 @@
 NDK_TOOLCHAINp_VERSION:=clang++
+# -Rpass=inline
 LOCAL_PATH:=$(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_MODULE:=libjni

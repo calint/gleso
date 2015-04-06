@@ -272,7 +272,7 @@ class view extends GLSurfaceView {
 	private static class Renderer implements GLSurfaceView.Renderer {
 		public void onDrawFrame(final GL10 gl){jni.glesostep();}
 		public void onSurfaceChanged(final GL10 gl,final int width,final int height){
-			jni.glesoonviewportchange(width,height);
+			jni.glesoviewport(width,height);
 		}
 		public void onSurfaceCreated(final GL10 gl,final EGLConfig config){
 			final int i=jni.glesoinit();if(i!=0)throw new Error("could not init, error "+i);
