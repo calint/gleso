@@ -18,6 +18,8 @@ namespace gl{
 	GLint umtx_mw;// mat4 model-world matrix
 	GLint umtx_vp;// mat4 view projection matrix
 	GLint utex;// texture sampler
+
+	GLint active_program;
 }
 ////////////////////////////////////////////////////////////////////////
 #include<string>
@@ -64,10 +66,12 @@ public:
 		return str;
 	}
 	static void check_gl_error(const char*op=""){
+		bool err=false;
 		for(GLenum error=glGetError();error;error=glGetError()){
 			p("!!! %s   glerror %x   %s\n",op,error,get_gl_error_string(error));
-			throw"detected gl error";
+			err=true;
 		}
+		if(err)throw"detected gl error";
 	}
 	static const char*get_shader_name_for_type(GLenum shader_type){
 		switch(shader_type){
@@ -76,11 +80,45 @@ public:
 		default:return"unknown";
 		}
 	}
+	void load(){
+		load_program(vertex_shader_source(),fragment_shader_source());
+		bind();
+	}
+	void viewport(const int wi,const int hi){
+		glViewport(0,0,wi,hi);
+	}
+	void use_program(){
+		if(gl::active_program==glid_program)return;
+		p(" activating program  %d\n",glid_program);
+		glUseProgram(glid_program);
+		prepare_gl_for_render();
+		gl::active_program=glid_program;
+	}
+
+private:
+	void load_program(const char*vertex_shader_source,const char*fragment_shader_source){
+		glid_program=glCreateProgram();
+		if(!glid_program)throw"cannot create program";
+		p(" program glid=%d\n",glid_program);
+		glAttachShader(glid_program,load_shader(GL_VERTEX_SHADER,vertex_shader_source));
+		glAttachShader(glid_program,load_shader(GL_FRAGMENT_SHADER,fragment_shader_source));
+		glLinkProgram(glid_program);
+		GLint linkStatus=GL_FALSE;
+		glGetProgramiv(glid_program,GL_LINK_STATUS,&linkStatus);
+		if(linkStatus)return;
+		GLint info_len{0};
+		glGetProgramiv(glid_program,GL_INFO_LOG_LENGTH,&info_len);
+		GLchar*info=new char[info_len];
+		glGetProgramInfoLog(glid_program,info_len,NULL,info);
+		p("!!! could not link program:\n%s\n",info);
+		delete info;
+		glDeleteProgram(glid_program);
+		glid_program=0;
+		throw"error while linking";
+	}
 	static GLuint load_shader(const GLenum shader_type,const char*source){
-		//throw "error";
 		const GLuint shader=glCreateShader(shader_type);
 		p(" %s shader glid=%d\n",get_shader_name_for_type(shader_type),shader);
-//		if(!shader)throw"cannot get shader id";
 		glShaderSource(shader,1,&source,NULL);
 		glCompileShader(shader);
 		GLint compiled{0};
@@ -88,65 +126,17 @@ public:
 		if(compiled)return shader;
 		GLint info_len{0};
 		glGetShaderiv(shader,GL_INFO_LOG_LENGTH,&info_len);
-		if(!info_len)throw"cannot get infolen";
-		GLchar*info_buf=new GLchar[info_len];//(char*)malloc(size_t(infolen));
-		if(!info_buf)throw"cannot allocate buffer";
-		glGetShaderInfoLog(shader,GLsizei{info_len},NULL,info_buf);
+		GLchar*info_buf=new GLchar[info_len];
+		glGetShaderInfoLog(shader,info_len,NULL,info_buf);
 		p("!!! could not compile %s shader:\n%s\n",get_shader_name_for_type(shader_type),info_buf);
-		free(info_buf);
+		delete info_buf;
 		glDeleteShader(shader);
 		throw"could not compile shader";
 	}
-
-	void load(){
-		load_program(vertex_shader_source(),fragment_shader_source());
-		bind();
-//		check_gl_error("program");
-	}
-
-	void viewport(const int wi,const int hi){
-		glViewport(0,0,wi,hi);
-	}
-
-	void use_program(){
-		glUseProgram(glid_program);
-		prepare_gl_for_render();
-	}
-
-private:
-	void load_program(const char*vertex_shader_source,const char*fragment_shader_source){
-		GLuint glid_vertex_shader=load_shader(GL_VERTEX_SHADER,vertex_shader_source);
-		GLuint glid_pixel_shader=load_shader(GL_FRAGMENT_SHADER,fragment_shader_source);
-		glid_program=glCreateProgram();
-		if(!glid_program)throw"cannot create program";
-		p(" program glid=%d\n",glid_program);
-		glAttachShader(glid_program,glid_vertex_shader);
-		check_gl_error("glAttachShader vertex");
-		glAttachShader(glid_program,glid_pixel_shader);
-		check_gl_error("glAttachShader fragment");
-		glLinkProgram(glid_program);
-		GLint linkStatus=GL_FALSE;
-		glGetProgramiv(glid_program,GL_LINK_STATUS,&linkStatus);
-		if(linkStatus)return;
-		GLint bufLength=0;
-		glGetProgramiv(glid_program,GL_INFO_LOG_LENGTH,&bufLength);
-		if(bufLength){
-			char*buf=(char*)malloc(size_t(bufLength));
-			if(buf){
-				glGetProgramInfoLog(glid_program,bufLength,NULL,buf);
-				p("!!! could not link program:\n%s\n",buf);
-				free(buf);
-			}
-		}
-		glDeleteProgram(glid_program);
-		glid_program=0;
-		throw"error while linking";
-	}
 protected:
-	inline GLint get_attribute_location(const char*name){return glGetAttribLocation(glid_program,name);}
-	inline GLint get_uniform_location(const char*name){return glGetUniformLocation(glid_program,name);}
-
-const char*shader_source_vertex=R"(
+	inline virtual const GLchar*vertex_shader_source()const{return shader_source_vertex;}
+	inline virtual const GLchar*fragment_shader_source()const{return shader_source_fragment;}
+const GLchar*shader_source_vertex=R"(
 #version 100
 uniform mat4 umtx_mw;// model-world matrix
 uniform mat4 umtx_vp;// view-projection matrix
@@ -161,18 +151,19 @@ void main(){
     vrgba=argba;
 }
 )";
-const char*shader_source_fragment=R"(
+const GLchar*shader_source_fragment=R"(
 #version 100
 uniform sampler2D utex;
 varying mediump vec2 vuv;
 varying mediump vec4 vrgba;
 void main(){
-	gl_FragColor=texture2D(utex,vuv)+vrgba;
+    mediump vec4 tx=texture2D(utex,vuv);
+	gl_FragColor=tx+vrgba;
 }
 )";
-	inline virtual const char*vertex_shader_source()const{return shader_source_vertex;}
-	inline virtual const char*fragment_shader_source()const{return shader_source_fragment;}
 
+	inline GLint get_attribute_location(const char*name){return glGetAttribLocation(glid_program,name);}
+	inline GLint get_uniform_location(const char*name){return glGetUniformLocation(glid_program,name);}
 	#define A(x,y)if((x=get_attribute_location(y))==-1){p("shader: cannot find attribute %s\n",y);throw"error";};
 	#define U(x,y)if((x=get_uniform_location(y))==-1){p("shader: cannot find uniform %s\n",y);throw"error";}
 	virtual void bind(){
@@ -183,7 +174,7 @@ void main(){
 		U(umtx_vp,"umtx_vp");
 		U(utex,"utex");
 	}
-	inline virtual void prepare_gl_for_render(){
+	virtual void prepare_gl_for_render(){
 		gl::umtx_mw=umtx_mw;
 		gl::umtx_vp=umtx_vp;
 		gl::utex=utex;
@@ -213,8 +204,8 @@ public:
 	}
 	void enable_for_gl_draw(){
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D,glid_texture);
 		glUniform1i(glid_texture,0);
+		glBindTexture(GL_TEXTURE_2D,glid_texture);
 	}
 	void refresh_from_data(){
 		glBindTexture(GL_TEXTURE_2D,glid_texture);
@@ -673,13 +664,25 @@ public:
 	}
 	virtual vector<GLfloat>make_vertices()const{
 		vector<GLfloat>v;
-		const static GLfloat verts[]{-1,1, -1,-1, 1,-1, 1,1};
+		const static GLfloat verts[]{
+		//	 x  y
+			-1, 1,
+			-1,-1,
+			 1,-1,
+			 1, 1
+		};
 		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
 		return v;
 	}
 	virtual vector<GLfloat>make_texture_coords()const{
 		vector<GLfloat>v;
-		const static GLfloat verts[]{0,1, 0,0, 1,0, 1,1};
+		const static GLfloat verts[]{
+		//	u v
+			0,1,
+			0,0,
+			1,0,
+			1,1
+		};
 		v.assign(verts,verts+sizeof(verts)/sizeof(GLfloat));
 		return v;
 	}
@@ -695,16 +698,17 @@ public:
 };
 class glo_square_xyuvrgba:public glo_square_xyuv{
 public:
-	glo_square_xyuvrgba(){
-		texture(nullptr);
-	}
+//	glo_square_xyuvrgba(){
+//		texture(nullptr);
+//	}
 	virtual vector<GLfloat>make_colors()const{
 		vector<GLfloat>v;
 		const GLfloat f[]{
-			0,0,0,1,
-			1,1,1,1,
-			0,0,0,1,
-			0,0,0,1,
+		//   R  G  B A
+			 0, 0, 0,1,
+			 1, 1, 1,1,
+			 0, 0, 0,1,
+			-1,-1,-1,1,
 		};
 		v.assign(f,f+sizeof(f)/sizeof(GLfloat));
 		return v;
@@ -849,6 +853,7 @@ int gleso_init(){
 		c.phy.p.x={.5};
 		c.phy.dp.x={1};
 	}
+	gl::active_program=0;
 	p("* load\n");
 	gl::shdr->load();
 	foreach(gleso::textures,[](texture*o){
