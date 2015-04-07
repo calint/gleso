@@ -1,5 +1,7 @@
 gen/**
 libs/**
+libs/
 obj/**
+obj/
 bin/**
 !bin/gleso.apk
