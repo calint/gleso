@@ -1,5 +1,5 @@
-/bin/**
-/gen/**
-/libs/**
-/obj/**
-!/bin/gleso.apk
+gen/**
+libs/**
+obj/**
+bin/**
+!bin/gleso.apk
