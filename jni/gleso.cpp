@@ -14,7 +14,8 @@ namespace gl{
 	shader*shdr;
 	GLuint apos;// vec2 vertex coords x,y
 	GLuint auv;// vec2 texture coords x,y
-	GLuint umvp;// mat4 model-world-view-projection matrix
+	GLuint umtx_mw;// mat4 model-world matrix
+	GLuint umtx_vp;// mat4 view projection matrix
 	GLuint utex;// texture sampler
 }
 ////////////////////////////////////////////////////////////////////////
@@ -23,18 +24,19 @@ class shader{
 	GLuint glid_program{0};
 	GLuint apos{0};
 	GLuint auv{0};
-	GLuint umvp{0};
+	GLuint umtx_mw{0};
+	GLuint umtx_vp{0};
 	GLuint utex{0};
 public:
 	shader(){metrics::nshader++;}
 
 	virtual~shader(){
 		metrics::nshader--;
-//		p("deleting shader %p\n",this);
+		p("deleting shader %p\n",(void*)this);
 //		if(glid_program){glDeleteProgram(glid_program);glid_program=0;}
 	}
 
-	static void printGLString(const char *name,const GLenum s){
+	static void print_gl_enum(const char *name,const GLenum s){
 		const char*v=(const char*)glGetString(s);
 		p("GL %s = %s\n",name,v);
 	}
@@ -59,44 +61,45 @@ public:
 		}
 		return str;
 	}
-
-	static bool checkGlError(const char*op){
-		bool err=false;
+	static void check_gl_error(const char*op=""){
 		for(GLenum error=glGetError();error;error=glGetError()){
-			p("at %s() glError (0x%x):  %s\n",op,error,get_gl_error_string(error));
-			err=true;
+			p("!!! %s   glerror %x   %s\n",op,error,get_gl_error_string(error));
+			throw"detected gl error";
 		}
-		return err;
 	}
-
+	static const char*get_shader_name_for_type(GLenum shader_type){
+		switch(shader_type){
+		case GL_VERTEX_SHADER:return"vertex";
+		case GL_FRAGMENT_SHADER:return"fragment";
+		default:return"unknown";
+		}
+	}
 	static GLuint loadShader(const GLenum shader_type,const char*source){
 		//throw "error";
  		const GLuint shader=glCreateShader(shader_type);
- 		p("shader %d  glid=%d\n",shader_type,shader);
- 		if(!shader)return 0;
+ 		p(" %s shader glid=%d\n",get_shader_name_for_type(shader_type),shader);
+ 		if(!shader)throw"cannot get shader id";
  		glShaderSource(shader,1,&source,NULL);
 		glCompileShader(shader);
 		GLint compiled=0;
 		glGetShaderiv(shader,GL_COMPILE_STATUS,&compiled);
-//		LOGE("compiled: %d\n",compiled);
 		if(compiled)return shader;
 		GLint infolen=0;
 		glGetShaderiv(shader,GL_INFO_LOG_LENGTH,&infolen);
-//		LOGE("info log len: %d\n",infolen);
-		if(!infolen)return 0;
-		char*buf=(char*)malloc(size_t(infolen));
-		if(!buf)return 0;
+		if(!infolen)throw"cannot get infolen";
+		char*buf=new char[infolen];//(char*)malloc(size_t(infolen));
+		if(!buf)throw"cannot get compiler error";
 		glGetShaderInfoLog(shader,infolen,NULL,buf);
-		p("Could not compile shader %d:\n%s\n",shader_type, buf);
+		p("!!! could not compile %s shader:\n%s\n",get_shader_name_for_type(shader_type),buf);
 		free(buf);
 		glDeleteShader(shader);
-		return 0;
+		throw"could not compile shader";
 	}
 
-	bool load(){
+	void load(){
 		createProgram(vertex_shader_source(),fragment_shader_source());
-		if(checkGlError("program"))return false;
-		return !bind();
+		check_gl_error("program");
+		bind();
 	}
 
 	void viewport(const int wi,const int hi){
@@ -109,34 +112,33 @@ public:
 	}
 
 private:
-	bool createProgram(const char*vertex_shader_source,const char*fragment_shader_source){
+	void createProgram(const char*vertex_shader_source,const char*fragment_shader_source){
 		GLuint glid_vertex_shader=loadShader(GL_VERTEX_SHADER,vertex_shader_source);
-		if(!glid_vertex_shader)return false;
 		GLuint glid_pixel_shader=loadShader(GL_FRAGMENT_SHADER,fragment_shader_source);
-		if(!glid_pixel_shader)return false;
 		glid_program=glCreateProgram();
-		if(!glid_program)return false;
+		if(!glid_program)throw"cannot create program";
+		p(" program glid=%d\n",glid_program);
 		glAttachShader(glid_program,glid_vertex_shader);
-		if(checkGlError("glAttachShader vertex"))return false;
+		check_gl_error("glAttachShader vertex");
 		glAttachShader(glid_program,glid_pixel_shader);
-		if(checkGlError("glAttachShader fragment"))return false;
+		check_gl_error("glAttachShader fragment");
 		glLinkProgram(glid_program);
 		GLint linkStatus=GL_FALSE;
 		glGetProgramiv(glid_program,GL_LINK_STATUS,&linkStatus);
-		if(linkStatus)return true;
+		if(linkStatus)return;
 		GLint bufLength=0;
 		glGetProgramiv(glid_program,GL_INFO_LOG_LENGTH,&bufLength);
 		if(bufLength){
 			char*buf=(char*)malloc(size_t(bufLength));
 			if(buf){
 				glGetProgramInfoLog(glid_program,bufLength,NULL,buf);
-				p("Could not link program:\n%s\n",buf);
+				p("!!! could not link program:\n%s\n",buf);
 				free(buf);
 			}
 		}
 		glDeleteProgram(glid_program);
 		glid_program=0;
-		return false;
+		throw"error while linking";
 	}
 protected:
 	inline GLint get_attribute_location(const char*name){return glGetAttribLocation(glid_program,name);}
@@ -144,12 +146,13 @@ protected:
 
 const char*shader_source_vertex=R"(
 #version 100
-uniform mat4 umvp;
-attribute vec4 apos;
-attribute vec2 auv;
+uniform mat4 umtx_mw;// model-world matrix
+uniform mat4 umtx_vp;// view-projection matrix
+attribute vec4 apos;// vertices
+attribute vec2 auv;// texture coords
 varying vec2 vuv;
 void main(){
-	gl_Position=umvp*apos;
+	gl_Position=umtx_vp*umtx_mw*apos;
     vuv=auv;
 }
 )";
@@ -164,18 +167,18 @@ void main(){
 	inline virtual const char*vertex_shader_source()const{return shader_source_vertex;}
 	inline virtual const char*fragment_shader_source()const{return shader_source_fragment;}
 
-	#define A(x,y)if((x=(GLuint)get_attribute_location(y))==(GLuint)-1){p("shader: cannot find attribute %s\n",y);return-1;};
-	#define U(x,y)if((x=(GLuint)get_uniform_location(y))==(GLuint)-1){p("shader: cannot find uniform %s\n",y);return-1;}
-	virtual int bind(){
-//		throw"exception while binding";
+	#define A(x,y)if((x=(GLuint)get_attribute_location(y))==(GLuint)-1){p("shader: cannot find attribute %s\n",y);throw"error";};
+	#define U(x,y)if((x=(GLuint)get_uniform_location(y))==(GLuint)-1){p("shader: cannot find uniform %s\n",y);throw"error";}
+	virtual void bind(){
 		A(apos,"apos");
 		A(auv,"auv");
-		U(umvp,"umvp");
+		U(umtx_mw,"umtx_mw");
+		U(umtx_vp,"umtx_vp");
 		U(utex,"utex");
-		return 0;
 	}
 	inline virtual void prepare_gl_for_render(){
-		gl::umvp=umvp;
+		gl::umtx_mw=umtx_mw;
+		gl::umtx_vp=umtx_vp;
 		gl::utex=utex;
 		gl::apos=apos;
 		gl::auv=auv;
@@ -194,11 +197,12 @@ public:
 //	}
 	void load(){
 		glGenTextures(1,&glid_texture);
-		p("texture  glid=%d\n",glid_texture);
+		p(" texture  glid=%d\n",glid_texture);
 		glBindTexture(GL_TEXTURE_2D,glid_texture);
 		glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,(GLvoid*)data);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+		shader::check_gl_error();
 //		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	void enable_for_gl_draw(){
@@ -248,7 +252,7 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER,glid_buffer_vertices);
 		const vector<GLfloat>vec=make_vertices();
 		glBufferData(GL_ARRAY_BUFFER,GLsizeiptr(vec.size()*sizeof(GLfloat)),vec.data(),GL_STATIC_DRAW);
-		if(shader::checkGlError("load"))return 1;
+		if(shader::check_gl_error("load"))return 1;
 #endif
 		return 0;
 	}
@@ -354,7 +358,7 @@ private:
 };
 
 ////
-// lifted from apple examples
+// mtx funcs lifted from apple examples
 static void mtxLoadTranslate(floato*mtx,const floato xTrans,const floato yTrans,const floato zTrans){
 	// [ 0 4  8  x ]
 	// [ 1 5  9  y ]
@@ -423,20 +427,83 @@ static void mtxScaleApply(floato* mtx, floato xScale, floato yScale, floato zSca
 	mtx[ 7] *= yScale;
 	mtx[11] *= xScale;
 }
+void mtxLoadOrthographic(float* mtx,
+							float left, float right,
+							float bottom, float top,
+							float nearZ, float farZ)
+{
+	//See appendix G of OpenGL Red Book
+
+	mtx[ 0] = 2.0f / (right - left);
+	mtx[ 1] = 0.0;
+	mtx[ 2] = 0.0;
+	mtx[ 3] = 0.0;
+
+	mtx[ 4] = 0.0;
+	mtx[ 5] = 2.0f / (top - bottom);
+	mtx[ 6] = 0.0;
+	mtx[ 7] = 0.0;
+
+	mtx[ 8] = 0.0;
+	mtx[ 9] = 0.0;
+	mtx[10] = -2.0f / (farZ - nearZ);
+	mtx[11] = 0.0;
+
+	mtx[12] = -(right + left) / (right - left);
+	mtx[13] = -(top + bottom) / (top - bottom);
+	mtx[14] = -(farZ + nearZ) / (farZ - nearZ);
+	mtx[15] = 1.0f;
+}
+void mtxMultiply(float* ret, const float* lhs, const float* rhs)
+{
+	// [ 0 4  8 12 ]   [ 0 4  8 12 ]
+	// [ 1 5  9 13 ] x [ 1 5  9 13 ]
+	// [ 2 6 10 14 ]   [ 2 6 10 14 ]
+	// [ 3 7 11 15 ]   [ 3 7 11 15 ]
+	ret[ 0] = lhs[ 0]*rhs[ 0] + lhs[ 4]*rhs[ 1] + lhs[ 8]*rhs[ 2] + lhs[12]*rhs[ 3];
+	ret[ 1] = lhs[ 1]*rhs[ 0] + lhs[ 5]*rhs[ 1] + lhs[ 9]*rhs[ 2] + lhs[13]*rhs[ 3];
+	ret[ 2] = lhs[ 2]*rhs[ 0] + lhs[ 6]*rhs[ 1] + lhs[10]*rhs[ 2] + lhs[14]*rhs[ 3];
+	ret[ 3] = lhs[ 3]*rhs[ 0] + lhs[ 7]*rhs[ 1] + lhs[11]*rhs[ 2] + lhs[15]*rhs[ 3];
+
+	ret[ 4] = lhs[ 0]*rhs[ 4] + lhs[ 4]*rhs[ 5] + lhs[ 8]*rhs[ 6] + lhs[12]*rhs[ 7];
+	ret[ 5] = lhs[ 1]*rhs[ 4] + lhs[ 5]*rhs[ 5] + lhs[ 9]*rhs[ 6] + lhs[13]*rhs[ 7];
+	ret[ 6] = lhs[ 2]*rhs[ 4] + lhs[ 6]*rhs[ 5] + lhs[10]*rhs[ 6] + lhs[14]*rhs[ 7];
+	ret[ 7] = lhs[ 3]*rhs[ 4] + lhs[ 7]*rhs[ 5] + lhs[11]*rhs[ 6] + lhs[15]*rhs[ 7];
+
+	ret[ 8] = lhs[ 0]*rhs[ 8] + lhs[ 4]*rhs[ 9] + lhs[ 8]*rhs[10] + lhs[12]*rhs[11];
+	ret[ 9] = lhs[ 1]*rhs[ 8] + lhs[ 5]*rhs[ 9] + lhs[ 9]*rhs[10] + lhs[13]*rhs[11];
+	ret[10] = lhs[ 2]*rhs[ 8] + lhs[ 6]*rhs[ 9] + lhs[10]*rhs[10] + lhs[14]*rhs[11];
+	ret[11] = lhs[ 3]*rhs[ 8] + lhs[ 7]*rhs[ 9] + lhs[11]*rhs[10] + lhs[15]*rhs[11];
+
+	ret[12] = lhs[ 0]*rhs[12] + lhs[ 4]*rhs[13] + lhs[ 8]*rhs[14] + lhs[12]*rhs[15];
+	ret[13] = lhs[ 1]*rhs[12] + lhs[ 5]*rhs[13] + lhs[ 9]*rhs[14] + lhs[13]*rhs[15];
+	ret[14] = lhs[ 2]*rhs[12] + lhs[ 6]*rhs[13] + lhs[10]*rhs[14] + lhs[14]*rhs[15];
+	ret[15] = lhs[ 3]*rhs[12] + lhs[ 7]*rhs[13] + lhs[11]*rhs[14] + lhs[15]*rhs[15];}
+///////////////////////////////////////////////////////
+
 class m4{
 	floato c[16]{0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0};
 public:
 	inline m4&load_translate(const p3&p){mtxLoadTranslate(c,p.x(),p.y(),p.z());return*this;}
 	inline m4&append_rotation_about_z_axis(const floato degrees){mtxRotateZApply(c,degrees);return*this;}
 	inline m4&append_scaling(const p3&scale){mtxScaleApply(c,scale.x(),scale.y(),scale.z());return*this;}
+	inline m4&load_ortho_projection(floato left,floato right,floato bottom,floato top,floato nearZ,floato farZ){
+		mtxLoadOrthographic(c,left,right,bottom,top,nearZ,farZ);
+		return*this;
+	}
 	inline const floato*array()const{return c;}
 };
-//class linked_list{
-//	linked_list*nxt;
-//	linked_list*prv;
-//};
-//class glob:public linked_list{
-//glo nullglo{};
+
+class camera{
+	m4 mtx_wp;
+public:
+	void init_for_render(const p3&position){
+		glClearColor(floato{.5},0,floato{.5},1);
+		glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+		mtx_wp.load_translate(position);
+	}
+	inline const m4&matrix_world_view_projection()const{return mtx_wp;}
+};
 class glob{
 	const class glo*glo{nullptr};// ref to gl renderable
 	class physics phys;// current physics state
@@ -453,13 +520,14 @@ public:
 	inline class physics&physics(){return phys;}
 	inline const p3&scale()const{return scal;}
 	inline glob&scale(const p3&scale){scal=scale;return*this;}
-	void render(){
+	void render(const camera&c){
 		if(!glo)return;
 		render_info=render_info_next;
 		matrix_model_world.load_translate(render_info.position());
 		matrix_model_world.append_rotation_about_z_axis(render_info.angle().z());
 		matrix_model_world.append_scaling(render_info.scale());
-		glUniformMatrix4fv(GLint(gl::umvp),1,false,matrix_model_world.array());
+		glUniformMatrix4fv(GLint(gl::umtx_mw),1,false,matrix_model_world.array());
+		glUniformMatrix4fv(GLint(gl::umtx_vp),1,false,c.matrix_world_view_projection().array());
 		glo->render();
 	}
 	void update(){
@@ -562,7 +630,7 @@ public://                                          (:)
 	grid(){}//                                    __|__         <- "long neck"
 	void add(glob*g){globs.push_back(g);}        //(.)\\          //
 	void update(){foreach(globs,[](glob*g){g->update();});}//? multicore?
-	void render(){foreach(globs,[](glob*g){g->render();});}// single thread opengl rendering
+	void render(camera&c){foreach(globs,[c](glob*g){g->render(c);});}// single thread opengl rendering
 	void rem(glob*g){globs.remove(g);}//? multicore?||
 	void clr(){globs.clear();}
 	//    void refresh(){}// refreshes the grid, globs dont change grid often, globs often totally inside grid, maximum glob size less than grid    <-- procedurally generated text for vegetation
@@ -655,13 +723,13 @@ static/*gives*/glob*gleso_impl_create_root(){
 #include<typeinfo>
 static struct timeval timeval_after_init;
 int gleso_init(){
-	shader::checkGlError("init");
-	shader::printGLString("GL_VERSION",GL_VERSION);
-	shader::printGLString("GL_VENDOR",GL_VENDOR);
-	shader::printGLString("GL_RENDERER",GL_RENDERER);
+	shader::check_gl_error("init");
+	shader::print_gl_enum("GL_VERSION",GL_VERSION);
+	shader::print_gl_enum("GL_VENDOR",GL_VENDOR);
+	shader::print_gl_enum("GL_RENDERER",GL_RENDERER);
 	//	    printGLString("Extensions",GL_EXTENSIONS);
-	shader::printGLString("GL_SHADING_LANGUAGE_VERSION",GL_SHADING_LANGUAGE_VERSION);
-	shader::checkGlError("after opengl info");
+	shader::print_gl_enum("GL_SHADING_LANGUAGE_VERSION",GL_SHADING_LANGUAGE_VERSION);
+	shader::check_gl_error("after opengl info");
 
 	p("/// gleso init\n");
 	p("%16s %4u B\n","int",(unsigned int)sizeof(int));
@@ -673,52 +741,15 @@ int gleso_init(){
 	p("%16s %4u B\n","grid",(unsigned int)sizeof(grid));
 	p("%16s %4lu B\n","physics",sizeof(physics));
 	srand(1);// generate same random numbers in different instances
-	p("\n");
-	try{
-		throw"exception while init";
-	}catch(const char*s){
-    	p("!!! exception caught: %s\n",s);
-  }
-/*
-	if(gl::shdr){
-		delete gl::shdr;
-	}
-	gl::shdr=new shader();
-	if(!gl::shdr->load())
-		return 1;
-
-	if(!gleso::textures.empty()){
-		foreach(gleso::textures,[](texture*o){delete o;});
-		gleso::textures.clear();
-	}
-	if(!gleso::glos.empty()){
-		foreach(gleso::glos,[](glo*o){delete o;});
-		gleso::textures.clear();
-	}
-	if(gleso::grd){
-		delete gleso::grd;
-	}
-	gleso_impl_add_resources();
-	foreach(gleso::textures,[](texture*o){
-		p(" texture %p   %s\n",(void*)o,typeid(*o).name());
-		o->load();
-	});
-	foreach(gleso::glos,[](glo*o){
-		p(" glo %p   %s\n",(void*)o,typeid(*o).name());
-		o->load();
-	});
-	gleso::grd=new grid();
-	gleso::grd->add(gleso_impl_create_root());//? leak? grd->add does not take
-*/
-
 	if(!gl::shdr){// init
+		p("* initiating\n");
 		gl::shdr=new shader();
 		gleso_impl_add_resources();
 		gleso::grd=new grid();
 		gleso::grd->add(/*gives*/gleso_impl_create_root());//? leak? grd->add does not take
 	}
-	if(!gl::shdr->load())
-		return 1;
+	p("* loading\n");
+	gl::shdr->load();
 	foreach(gleso::textures,[](texture*o){
 		p(" texture %p   %s\n",(void*)o,typeid(*o).name());
 		o->load();
@@ -727,7 +758,6 @@ int gleso_init(){
 		p(" glo %p   %s\n",(void*)o,typeid(*o).name());
 		o->load();
 	});
-
 	fps::reset();
 	gettimeofday(&timeval_after_init,NULL);
 	metrics::time_since_start_in_seconds=0;
@@ -737,6 +767,10 @@ void gleso_viewport(int width,int height){
 	p("/// gleso_viewport  %d x %d\n",width,height);
 	if(gl::shdr)gl::shdr->viewport(width,height);
 }
+
+static camera c;
+static p3 cp{.5};
+static p3 dcp{1};
 void gleso_step(){
 	fps::before_render();
 	gleso::tick++;
@@ -746,11 +780,16 @@ void gleso_step(){
 	const int diff_us=tv.tv_usec-timeval_after_init.tv_usec;
 	metrics::time_since_start_in_seconds=(float)diff_s+diff_us/1000000.f;
 	gleso::dt=floato(1./60);
-	glClearColor(floato{.5},0,floato{.5},1);
-	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
-	gl::shdr->use_program();
 	gleso::grd->update();//? thread
-	gleso::grd->render();//? thread
+
+//	p("%f  %f\n",cp.x(),gleso::dt);
+	gl::shdr->use_program();
+	c.init_for_render(cp);
+	cp.add(dcp,gleso::dt);
+	if(cp.x()>1)dcp.x(-1);
+	else if(cp.x()<-1)dcp.x(1);
+
+	gleso::grd->render(c);//? thread
 	fps::after_render();
 }
 //void gleso_on_context_destroyed(){

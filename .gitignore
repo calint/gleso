@@ -1,7 +1,4 @@
 /bin/
-/gen/
-/libs/
-/obj/
-libs/
-libs
-/libs
+/gen/*
+/libs/*
+/obj/*
