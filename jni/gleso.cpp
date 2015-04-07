@@ -167,6 +167,7 @@ void main(){
 	#define A(x,y)if((x=(GLuint)get_attribute_location(y))==(GLuint)-1){p("shader: cannot find attribute %s\n",y);return-1;};
 	#define U(x,y)if((x=(GLuint)get_uniform_location(y))==(GLuint)-1){p("shader: cannot find uniform %s\n",y);return-1;}
 	virtual int bind(){
+//		throw"exception while binding";
 		A(apos,"apos");
 		A(auv,"auv");
 		U(umvp,"umvp");
@@ -673,6 +674,11 @@ int gleso_init(){
 	p("%16s %4lu B\n","physics",sizeof(physics));
 	srand(1);// generate same random numbers in different instances
 	p("\n");
+	try{
+		throw"exception while init";
+	}catch(const char*s){
+    	p("!!! exception caught: %s\n",s);
+  }
 /*
 	if(gl::shdr){
 		delete gl::shdr;

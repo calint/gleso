@@ -1,1 +1,5 @@
-#/home/c/downloads/android-ndk-r10d/ndk-build NDK_DEBUG=1
+ANDROID_NDK_ROOT=/home/c/downloads/android-ndk-r10d
+PATH="$PATH:$ANDROID_NDK_ROOT"
+PATH="$PATH:/home/sam/android/android-sdk-linux_x86/platform-tools"
+PATH="$PATH:/home/sam/android/android-sdk-linux_x86/tools"
+ndk-build NDK_DEBUG=1
